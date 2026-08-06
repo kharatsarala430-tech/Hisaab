@@ -1,3 +1,4 @@
+import { generateReport } from './ReportGenerator';
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import AddTransaction from './AddTransaction'
@@ -30,6 +31,14 @@ export default function Dashboard({ session }) {
     setLoading(false)
   }
 
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + Number(t.amount), 0)
+
+  const totalExpense = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount), 0)
+
   useEffect(() => {
     fetchTransactions()
   }, [])
@@ -47,6 +56,16 @@ export default function Dashboard({ session }) {
         </div>
         <button onClick={handleLogout} className="logout-btn">Logout</button>
       </header>
+
+      <button onClick={() => generateReport({
+        period: "This Month",
+        income: totalIncome,
+        expense: totalExpense,
+        emi: 0,
+        savings: 0
+      })}>
+        📄 Download Report
+      </button>
 
       {activeTab === 'dashboard' && (
         <>
