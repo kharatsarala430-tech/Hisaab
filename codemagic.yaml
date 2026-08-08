@@ -5,6 +5,8 @@ workflows:
     environment:
       node: 22
       java: 21
+      groups:
+        - supabase_credentials
     scripts:
       - name: Install dependencies
         script: npm install
