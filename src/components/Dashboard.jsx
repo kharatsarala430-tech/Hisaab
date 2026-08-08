@@ -11,8 +11,11 @@ import BottomNav from './BottomNav'
 
 export default function Dashboard({ session }) {
   const [transactions, setTransactions] = useState([])
+  const [emis, setEmis] = useState([])
+  const [savingsGoals, setSavingsGoals] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [generatingReport, setGeneratingReport] = useState(false)
 
   // Fetch all transactions belonging to the logged-in user
   const fetchTransactions = async () => {
@@ -31,6 +34,38 @@ export default function Dashboard({ session }) {
     setLoading(false)
   }
 
+  // Fetch EMIs so the report (and any dashboard summary) has real data,
+  // matching the same query EmiManager.jsx uses internally
+  const fetchEmis = async () => {
+    const { data, error } = await supabase
+      .from('emis')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching EMIs:', error.message)
+    } else {
+      setEmis(data)
+    }
+  }
+
+  // Fetch Savings Goals so the report has real data,
+  // matching the same query SavingsGoals.jsx uses internally
+  const fetchSavingsGoals = async () => {
+    const { data, error } = await supabase
+      .from('savings_goals')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching savings goals:', error.message)
+    } else {
+      setSavingsGoals(data)
+    }
+  }
+
   const totalIncome = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + Number(t.amount), 0)
@@ -41,10 +76,30 @@ export default function Dashboard({ session }) {
 
   useEffect(() => {
     fetchTransactions()
+    fetchEmis()
+    fetchSavingsGoals()
   }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+  }
+
+  const handleDownloadReport = async () => {
+    setGeneratingReport(true)
+    try {
+      await generateReport({
+        period: 'This Month',
+        transactions,
+        emis,
+        savingsGoals,
+        userEmail: session.user.email,
+      })
+    } catch (error) {
+      console.error('Report generation failed:', error)
+      alert('Something went wrong while generating the report. Please try again.')
+    } finally {
+      setGeneratingReport(false)
+    }
   }
 
   return (
@@ -57,14 +112,8 @@ export default function Dashboard({ session }) {
         <button onClick={handleLogout} className="logout-btn">Logout</button>
       </header>
 
-      <button onClick={() => generateReport({
-        period: "This Month",
-        income: totalIncome,
-        expense: totalExpense,
-        emi: 0,
-        savings: 0
-      })}>
-        📄 Download Report
+      <button onClick={handleDownloadReport} disabled={generatingReport} className="download-report-btn">
+        📄 {generatingReport ? 'Generating Report...' : 'Download Report'}
       </button>
 
       {activeTab === 'dashboard' && (
