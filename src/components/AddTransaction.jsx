@@ -7,6 +7,22 @@ const CATEGORIES = {
   expense: EXPENSE_CATEGORIES.map((c) => c.name),
 }
 
+const NEON_BLUE = '#3DA9FF'
+const NEON_RED = '#FF3D6E'
+const NEON_GREEN = '#39FF94'
+
+const inputStyle = {
+  width: '100%',
+  padding: '13px 14px',
+  marginBottom: 12,
+  background: '#0D0D0D',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: 12,
+  color: '#EAEAEA',
+  fontSize: 14.5,
+  outline: 'none',
+}
+
 export default function AddTransaction({ userId, onTransactionAdded }) {
   const [type, setType] = useState('expense')
   const [amount, setAmount] = useState('')
@@ -45,19 +61,32 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="add-transaction-form">
-      <div className="type-toggle">
+    <form onSubmit={handleSubmit} style={{
+      background: '#0D0D0D', borderRadius: 16, padding: 18, marginBottom: 22,
+      border: '1px solid rgba(61,169,255,0.2)',
+    }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
         <button
           type="button"
-          className={type === 'expense' ? 'active expense' : ''}
           onClick={() => handleTypeChange('expense')}
+          style={{
+            flex: 1, padding: '11px', borderRadius: 12, border: 'none',
+            fontSize: 14, fontWeight: 600,
+            background: type === 'expense' ? NEON_RED : 'rgba(255,255,255,0.06)',
+            color: type === 'expense' ? '#1A0508' : '#B8B8B8',
+          }}
         >
           Expense
         </button>
         <button
           type="button"
-          className={type === 'income' ? 'active income' : ''}
           onClick={() => handleTypeChange('income')}
+          style={{
+            flex: 1, padding: '11px', borderRadius: 12, border: 'none',
+            fontSize: 14, fontWeight: 600,
+            background: type === 'income' ? NEON_GREEN : 'rgba(255,255,255,0.06)',
+            color: type === 'income' ? '#052014' : '#B8B8B8',
+          }}
         >
           Income
         </button>
@@ -71,9 +100,10 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
         required
         min="0"
         step="0.01"
+        style={inputStyle}
       />
 
-      <select value={category} onChange={(e) => setCategory(e.target.value)}>
+      <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
         {CATEGORIES[type].map((cat) => (
           <option key={cat} value={cat}>{cat}</option>
         ))}
@@ -84,6 +114,7 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
         value={date}
         onChange={(e) => setDate(e.target.value)}
         required
+        style={inputStyle}
       />
 
       <input
@@ -91,11 +122,17 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
         placeholder="Note (optional)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
+        style={{ ...inputStyle, marginBottom: 16 }}
       />
 
-      <button type="submit" disabled={saving} className="submit-btn">
+      <button type="submit" disabled={saving} style={{
+        width: '100%', padding: '14px', borderRadius: 14, border: 'none',
+        background: NEON_BLUE, color: '#050505', fontWeight: 700, fontSize: 14.5,
+        boxShadow: saving ? 'none' : '0 0 24px rgba(61,169,255,0.4)',
+        opacity: saving ? 0.6 : 1,
+      }}>
         {saving ? 'Adding...' : 'Add Transaction'}
       </button>
     </form>
   )
-}
+      }
