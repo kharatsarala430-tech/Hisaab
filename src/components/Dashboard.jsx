@@ -17,6 +17,10 @@ export default function Dashboard({ session }) {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [generatingReport, setGeneratingReport] = useState(false)
 
+  // Month selector — defaults to the current month, e.g. "2026-08"
+  const currentMonthKey = new Date().toISOString().slice(0, 7)
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthKey)
+
   const fetchTransactions = async () => {
     setLoading(true)
     const { data, error } = await supabase
@@ -61,13 +65,24 @@ export default function Dashboard({ session }) {
     }
   }
 
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + Number(t.amount), 0)
+  // Build the list of months that actually have data, so the dropdown never shows
+  // empty months. Always includes the current month even if it has no transactions yet.
+  const monthsWithData = Array.from(
+    new Set(transactions.map(t => t.date.slice(0, 7)))
+  )
+  if (!monthsWithData.includes(currentMonthKey)) monthsWithData.push(currentMonthKey)
+  monthsWithData.sort().reverse() // newest first
 
-  const totalExpense = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + Number(t.amount), 0)
+  const formatMonthLabel = (monthKey) => {
+    const [year, month] = monthKey.split('-')
+    const date = new Date(Number(year), Number(month) - 1)
+    return date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+  }
+
+  // Nothing is ever deleted — this just filters what's shown for the selected month.
+  // EMIs and Savings Goals are intentionally NOT filtered by month; they persist
+  // until the loan/goal itself is finished, independent of the monthly transaction view.
+  const filteredTransactions = transactions.filter(t => t.date.slice(0, 7) === selectedMonth)
 
   useEffect(() => {
     fetchTransactions()
@@ -83,8 +98,8 @@ export default function Dashboard({ session }) {
     setGeneratingReport(true)
     try {
       await generateReport({
-        period: 'This Month',
-        transactions,
+        period: formatMonthLabel(selectedMonth),
+        transactions: filteredTransactions,
         emis,
         savingsGoals,
         userEmail: session.user.email,
@@ -133,24 +148,45 @@ export default function Dashboard({ session }) {
       </header>
 
       <div style={{ padding: '0 18px' }}>
+        {/* Month selector — only affects the Dashboard/Transactions view and the report.
+            EMI and Savings tabs are unaffected since those aren't month-based. */}
+        {activeTab === 'dashboard' && (
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{
+              width: '100%', padding: '12px 14px', marginBottom: 14,
+              background: '#0D0D0D', border: '1px solid rgba(61,169,255,0.25)',
+              borderRadius: 12, color: '#3DA9FF', fontSize: 14, fontWeight: 600,
+              outline: 'none',
+            }}
+          >
+            {monthsWithData.map((monthKey) => (
+              <option key={monthKey} value={monthKey}>
+                {formatMonthLabel(monthKey)}{monthKey === currentMonthKey ? ' (Current)' : ''}
+              </option>
+            ))}
+          </select>
+        )}
+
         <button onClick={handleDownloadReport} disabled={generatingReport} style={{
           width: '100%', padding: '11px', borderRadius: 12, marginBottom: 20,
           background: 'transparent', color: '#B8B8B8', fontSize: 13, fontWeight: 500,
           border: '1px solid rgba(255,255,255,0.15)',
           opacity: generatingReport ? 0.6 : 1,
         }}>
-          📄 {generatingReport ? 'Generating Report...' : 'Download Report'}
+          📄 {generatingReport ? 'Generating Report...' : `Download Report (${formatMonthLabel(selectedMonth)})`}
         </button>
 
         {activeTab === 'dashboard' && (
           <>
-            <Summary transactions={transactions} />
+            <Summary transactions={filteredTransactions} />
             <AddTransaction
               userId={session.user.id}
               onTransactionAdded={fetchTransactions}
             />
             <TransactionList
-              transactions={transactions}
+              transactions={filteredTransactions}
               loading={loading}
               onTransactionChanged={fetchTransactions}
             />
@@ -159,7 +195,7 @@ export default function Dashboard({ session }) {
 
         {activeTab === 'emi' && <EmiManager userId={session.user.id} />}
 
-        {activeTab === 'budget' && <BudgetPlanner transactions={transactions} />}
+        {activeTab === 'budget' && <BudgetPlanner transactions={filteredTransactions} />}
 
         {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
       </div>
@@ -167,4 +203,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-}
+    }
