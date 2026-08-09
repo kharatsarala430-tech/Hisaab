@@ -17,7 +17,6 @@ export default function Dashboard({ session }) {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [generatingReport, setGeneratingReport] = useState(false)
 
-  // Fetch all transactions belonging to the logged-in user
   const fetchTransactions = async () => {
     setLoading(true)
     const { data, error } = await supabase
@@ -34,8 +33,6 @@ export default function Dashboard({ session }) {
     setLoading(false)
   }
 
-  // Fetch EMIs so the report (and any dashboard summary) has real data,
-  // matching the same query EmiManager.jsx uses internally
   const fetchEmis = async () => {
     const { data, error } = await supabase
       .from('emis')
@@ -50,8 +47,6 @@ export default function Dashboard({ session }) {
     }
   }
 
-  // Fetch Savings Goals so the report has real data,
-  // matching the same query SavingsGoals.jsx uses internally
   const fetchSavingsGoals = async () => {
     const { data, error } = await supabase
       .from('savings_goals')
@@ -103,39 +98,71 @@ export default function Dashboard({ session }) {
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
+    <div style={{
+      minHeight: '100vh',
+      background: '#050505',
+      color: '#EAEAEA',
+      fontFamily: "'Inter', -apple-system, sans-serif",
+      paddingBottom: 90,
+    }}>
+      <header style={{
+        padding: '22px 18px 20px',
+        background: '#0A0A0A',
+        borderBottom: '1px solid rgba(61,169,255,0.15)',
+        marginBottom: 20,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+      }}>
         <div>
-          <h1>Hisaab</h1>
-          <p className="user-email">{session.user.email}</p>
+          <h1 style={{
+            fontFamily: "'Georgia', serif",
+            fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em',
+            color: '#3DA9FF', textShadow: '0 0 18px rgba(61,169,255,0.5)',
+            margin: 0,
+          }}>
+            Hisaab
+          </h1>
+          <p style={{ fontSize: 12.5, color: '#7A7A7A', marginTop: 2 }}>{session.user.email}</p>
         </div>
-        <button onClick={handleLogout} className="logout-btn">Logout</button>
+        <button onClick={handleLogout} style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
+          color: '#B8B8B8', fontSize: 12.5, padding: '7px 12px', borderRadius: 20,
+        }}>
+          Logout
+        </button>
       </header>
 
-      <button onClick={handleDownloadReport} disabled={generatingReport} className="download-report-btn">
-        📄 {generatingReport ? 'Generating Report...' : 'Download Report'}
-      </button>
+      <div style={{ padding: '0 18px' }}>
+        <button onClick={handleDownloadReport} disabled={generatingReport} style={{
+          width: '100%', padding: '11px', borderRadius: 12, marginBottom: 20,
+          background: 'transparent', color: '#B8B8B8', fontSize: 13, fontWeight: 500,
+          border: '1px solid rgba(255,255,255,0.15)',
+          opacity: generatingReport ? 0.6 : 1,
+        }}>
+          📄 {generatingReport ? 'Generating Report...' : 'Download Report'}
+        </button>
 
-      {activeTab === 'dashboard' && (
-        <>
-          <Summary transactions={transactions} />
-          <AddTransaction
-            userId={session.user.id}
-            onTransactionAdded={fetchTransactions}
-          />
-          <TransactionList
-            transactions={transactions}
-            loading={loading}
-            onTransactionChanged={fetchTransactions}
-          />
-        </>
-      )}
+        {activeTab === 'dashboard' && (
+          <>
+            <Summary transactions={transactions} />
+            <AddTransaction
+              userId={session.user.id}
+              onTransactionAdded={fetchTransactions}
+            />
+            <TransactionList
+              transactions={transactions}
+              loading={loading}
+              onTransactionChanged={fetchTransactions}
+            />
+          </>
+        )}
 
-      {activeTab === 'emi' && <EmiManager userId={session.user.id} />}
+        {activeTab === 'emi' && <EmiManager userId={session.user.id} />}
 
-      {activeTab === 'budget' && <BudgetPlanner transactions={transactions} />}
+        {activeTab === 'budget' && <BudgetPlanner transactions={transactions} />}
 
-      {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
+        {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
+      </div>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
