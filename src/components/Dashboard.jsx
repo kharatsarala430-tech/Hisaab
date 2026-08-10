@@ -8,6 +8,7 @@ import EmiManager from './EmiManager'
 import BudgetPlanner from './BudgetPlanner'
 import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
+import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
 
 export default function Dashboard({ session }) {
   const [transactions, setTransactions] = useState([])
@@ -88,6 +89,9 @@ export default function Dashboard({ session }) {
     fetchTransactions()
     fetchEmis()
     fetchSavingsGoals()
+    checkAndAddRecurringIncomes(session.user.id).then(() => {
+      fetchTransactions() // refresh list in case a recurring income was just auto-added
+    })
   }, [])
 
   const handleLogout = async () => {
@@ -203,4 +207,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-    }
+                }
