@@ -59,6 +59,7 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
 
     if (error) {
       console.error('Error adding transaction:', error.message)
+      alert('DEBUG ERROR: ' + error.message) // TEMPORARY — remove after debugging
     } else {
       setAmount('')
       setNote('')
