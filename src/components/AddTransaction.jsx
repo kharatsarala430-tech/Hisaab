@@ -30,10 +30,12 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
   const [note, setNote] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
+  const [isRecurring, setIsRecurring] = useState(false)
 
   const handleTypeChange = (newType) => {
     setType(newType)
     setCategory(CATEGORIES[newType][0]) // reset category when switching type
+    if (newType === 'expense') setIsRecurring(false) // recurring is income-only
   }
 
   const handleSubmit = async (e) => {
@@ -41,6 +43,9 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
     if (!amount || Number(amount) <= 0) return
 
     setSaving(true)
+
+    const recurringDay = isRecurring ? new Date(date).getDate() : null
+
     const { error } = await supabase.from('transactions').insert({
       user_id: userId,
       type,
@@ -48,6 +53,8 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
       category,
       note,
       date,
+      is_recurring: isRecurring,
+      recurring_day: recurringDay,
     })
 
     if (error) {
@@ -55,6 +62,7 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
     } else {
       setAmount('')
       setNote('')
+      setIsRecurring(false)
       onTransactionAdded() // refresh the list in Dashboard
     }
     setSaving(false)
@@ -117,6 +125,21 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
         style={inputStyle}
       />
 
+      {type === 'income' && (
+        <label style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          marginBottom: 12, color: '#B8B8B8', fontSize: 14, cursor: 'pointer',
+        }}>
+          <input
+            type="checkbox"
+            checked={isRecurring}
+            onChange={(e) => setIsRecurring(e.target.checked)}
+            style={{ width: 18, height: 18, accentColor: NEON_GREEN }}
+          />
+          🔁 Repeat every month
+        </label>
+      )}
+
       <input
         type="text"
         placeholder="Note (optional)"
@@ -135,4 +158,4 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
       </button>
     </form>
   )
-      }
+}
