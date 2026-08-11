@@ -1,13 +1,15 @@
 import { supabase } from '../lib/supabase'
 
-// Checks if any recurring incomes are missing for the current month,
+// Checks if any recurring transactions (income OR expense) are missing for the current month,
 // and adds them automatically. Safe to call every time the app loads.
+// NOTE: filename/function name kept as-is to avoid changing the Dashboard.jsx import —
+// it now handles both income and expense recurring transactions.
 export async function checkAndAddRecurringIncomes(userId) {
   const today = new Date()
   const currentMonth = today.getMonth() // 0-11
   const currentYear = today.getFullYear()
 
-  // Step A: Find all transactions marked as recurring templates
+  // Step A: Find all transactions marked as recurring templates (any type)
   const { data: recurringItems, error: fetchError } = await supabase
     .from('transactions')
     .select('*')
@@ -20,11 +22,12 @@ export async function checkAndAddRecurringIncomes(userId) {
   }
   if (!recurringItems || recurringItems.length === 0) return
 
-  // Only keep one "template" per unique recurring_day + category + amount
-  // (so we don't create duplicate templates if the user added recurring income multiple times)
+  // Only keep one "template" per unique recurring_day + type + category + amount
+  // (so we don't create duplicate templates if the user added the same recurring
+  // transaction multiple times)
   const seen = new Set()
   const uniqueTemplates = recurringItems.filter((item) => {
-    const key = `${item.recurring_day}-${item.category}-${item.amount}`
+    const key = `${item.recurring_day}-${item.type}-${item.category}-${item.amount}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
@@ -35,14 +38,14 @@ export async function checkAndAddRecurringIncomes(userId) {
   const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
 
   for (const item of uniqueTemplates) {
-    // Step B: Check if this recurring income was already added this month
+    // Step B: Check if this recurring transaction was already added this month
     const { data: existing, error: checkError } = await supabase
       .from('transactions')
       .select('id')
       .eq('user_id', userId)
       .eq('category', item.category)
       .eq('amount', item.amount)
-      .eq('type', 'income')
+      .eq('type', item.type)
       .gte('date', startOfMonth)
       .lte('date', endOfMonth)
 
@@ -59,7 +62,7 @@ export async function checkAndAddRecurringIncomes(userId) {
 
       const { error: insertError } = await supabase.from('transactions').insert({
         user_id: userId,
-        type: 'income',
+        type: item.type,
         amount: item.amount,
         category: item.category,
         note: item.note ? `${item.note} (auto)` : 'Auto-added (recurring)',
@@ -69,7 +72,7 @@ export async function checkAndAddRecurringIncomes(userId) {
       })
 
       if (insertError) {
-        console.error('Error auto-adding recurring income:', insertError.message)
+        console.error('Error auto-adding recurring transaction:', insertError.message)
       }
     }
   }
