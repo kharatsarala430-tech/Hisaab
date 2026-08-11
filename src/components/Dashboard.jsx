@@ -133,6 +133,8 @@ export default function Dashboard({ session }) {
       color: '#EAEAEA',
       fontFamily: "'Inter', -apple-system, sans-serif",
       paddingBottom: 90,
+      overflowX: 'hidden',
+      width: '100%',
     }}>
       <header style={{
         padding: '22px 18px 20px',
@@ -221,4 +223,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-        }
+      }
