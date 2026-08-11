@@ -35,7 +35,7 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
   const handleTypeChange = (newType) => {
     setType(newType)
     setCategory(CATEGORIES[newType][0]) // reset category when switching type
-    if (newType === 'expense') setIsRecurring(false) // recurring is income-only
+    setIsRecurring(false) // reset recurring toggle on any type switch — keeps behaviour predictable
   }
 
   const handleSubmit = async (e) => {
@@ -126,20 +126,18 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
         style={inputStyle}
       />
 
-      {type === 'income' && (
-        <label style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          marginBottom: 12, color: '#B8B8B8', fontSize: 14, cursor: 'pointer',
-        }}>
-          <input
-            type="checkbox"
-            checked={isRecurring}
-            onChange={(e) => setIsRecurring(e.target.checked)}
-            style={{ width: 18, height: 18, accentColor: NEON_GREEN }}
-          />
-          🔁 Repeat every month
-        </label>
-      )}
+      <label style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        marginBottom: 12, color: '#B8B8B8', fontSize: 14, cursor: 'pointer',
+      }}>
+        <input
+          type="checkbox"
+          checked={isRecurring}
+          onChange={(e) => setIsRecurring(e.target.checked)}
+          style={{ width: 18, height: 18, accentColor: type === 'income' ? NEON_GREEN : NEON_RED }}
+        />
+        🔁 Repeat every month
+      </label>
 
       <input
         type="text"
