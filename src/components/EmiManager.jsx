@@ -472,5 +472,69 @@ function BillsSection({ userId }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <Tag color={NEON_PURPLE}>{bill.category}</Tag>
-<Tag color={statusColor}>{statusText}</Tag>
-<button onClick={() => handleDelete(bill.id)} ...>🗑</button>
+                <Tag color={statusColor}>{statusText}</Tag>
+                <button
+                  onClick={() => handleDelete(bill.id)}
+                  style={{
+                    marginLeft: 'auto', width: 26, height: 26, borderRadius: 8, border: 'none',
+                    background: 'rgba(255,255,255,0.06)', color: '#7A7A7A', fontSize: 13, cursor: 'pointer',
+                  }}
+                >
+                  🗑
+                </button>
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{bill.name}</h3>
+              <p style={{ fontSize: 12.5, color: '#7A7A7A', margin: '2px 0 12px' }}>
+                {bill.recurrence.charAt(0).toUpperCase() + bill.recurrence.slice(1)} · Due {new Date(bill.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ color: '#7A7A7A', fontSize: 11, marginBottom: 3 }}>Amount</div>
+                  <div style={{ color: NEON_PURPLE, fontWeight: 700, fontSize: 16, fontVariantNumeric: 'tabular-nums' }}>
+                    {bill.amount ? `₹${Number(bill.amount).toLocaleString()}` : 'Varies'}
+                  </div>
+                </div>
+                {!bill.is_paid && (
+                  <button
+                    onClick={() => handleMarkPaid(bill)}
+                    style={{
+                      padding: '10px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: NEON_GREEN, color: '#0A1F13', fontWeight: 700, fontSize: 12.5,
+                    }}
+                  >
+                    Mark as Paid
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+function StatCard({ label, value, sub, accent }) {
+  return (
+    <div style={{
+      background: '#0D0D0D', borderRadius: 14, padding: '14px 16px',
+      border: '1px solid rgba(255,255,255,0.08)',
+    }}>
+      <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 17, fontWeight: 700, color: accent, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div style={{ fontSize: 10.5, color: '#5C5C5C', marginTop: 3 }}>{sub}</div>
+    </div>
+  )
+}
+
+function Tag({ children, color = '#B8B8B8' }) {
+  return (
+    <span style={{
+      fontSize: 10.5, padding: '4px 9px', borderRadius: 20,
+      background: `${color}22`, color, fontWeight: 500,
+    }}>
+      {children}
+    </span>
+  )
+}
