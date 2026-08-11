@@ -17,6 +17,9 @@ export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [generatingReport, setGeneratingReport] = useState(false)
+  // Tracks whether the initial emis/savingsGoals fetch has finished, so the
+  // report button can't fire before that data is actually in state.
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false)
 
   // Month selector — defaults to the current month, e.g. "2026-08"
   const currentMonthKey = new Date().toISOString().slice(0, 7)
@@ -87,8 +90,14 @@ export default function Dashboard({ session }) {
 
   useEffect(() => {
     fetchTransactions()
-    fetchEmis()
-    fetchSavingsGoals()
+    // Wait for BOTH emis and savingsGoals to actually resolve before marking
+    // initial data as loaded. Without this, hitting "Download Report" right
+    // after the screen opens can fire generateReport() while emis/savingsGoals
+    // are still their default empty arrays — the report shows 0 EMIs even
+    // though the EMI tab has data, because the fetch just hadn't finished yet.
+    Promise.all([fetchEmis(), fetchSavingsGoals()]).then(() => {
+      setInitialDataLoaded(true)
+    })
     checkAndAddRecurringIncomes(session.user.id).then(() => {
       fetchTransactions() // refresh list in case a recurring income was just auto-added
     })
@@ -174,13 +183,17 @@ export default function Dashboard({ session }) {
           </select>
         )}
 
-        <button onClick={handleDownloadReport} disabled={generatingReport} style={{
+        <button onClick={handleDownloadReport} disabled={generatingReport || !initialDataLoaded} style={{
           width: '100%', padding: '11px', borderRadius: 12, marginBottom: 20,
           background: 'transparent', color: '#B8B8B8', fontSize: 13, fontWeight: 500,
           border: '1px solid rgba(255,255,255,0.15)',
-          opacity: generatingReport ? 0.6 : 1,
+          opacity: (generatingReport || !initialDataLoaded) ? 0.6 : 1,
         }}>
-          📄 {generatingReport ? 'Generating Report...' : `Download Report (${formatMonthLabel(selectedMonth)})`}
+          📄 {generatingReport
+            ? 'Generating Report...'
+            : !initialDataLoaded
+              ? 'Loading data...'
+              : `Download Report (${formatMonthLabel(selectedMonth)})`}
         </button>
 
         {activeTab === 'dashboard' && (
@@ -208,4 +221,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-      }
+        }
