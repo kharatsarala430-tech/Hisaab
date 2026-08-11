@@ -16,20 +16,18 @@ const INFO_BLUE = [59, 130, 246];
 const LIGHT_BG = [240, 253, 249];        // very light green tint for zebra rows
 
 // ---------- Native (Android/iOS) save + share helpers ----------
-const getNativeDirectory = async () => {
-  try {
-    return Directory.Documents;
-  } catch (error) {
-    return Directory.External;
-  }
-};
-
+// Directory.Cache needs NO runtime storage permission on Android/iOS.
+// Since we immediately hand the file to Share.share() (we're not asking
+// the user to keep it long-term ourselves), Cache is the correct,
+// permission-free choice.
+// (Directory.Documents/External require scoped-storage permissions on
+// Android 10+ and throw at writeFile() time if not granted — that was
+// the root cause of "Unable to save report natively".)
 const savePdfNative = async (pdfBase64, fileName) => {
-  const directory = await getNativeDirectory();
   const result = await Filesystem.writeFile({
     path: fileName,
     data: pdfBase64,
-    directory,
+    directory: Directory.Cache,
     recursive: true,
   });
   return result.uri;
