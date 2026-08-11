@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { scheduleBillReminder, cancelBillReminder } from '../lib/notifications'
 
 const LOAN_TYPES = ['Gadget Loan', 'Home Loan', 'Auto Loan', 'Personal Loan', 'Education Loan', 'Other']
 const BILL_CATEGORIES = ['Subscription', 'Utility', 'Insurance', 'Rent', 'Other']
@@ -292,7 +293,7 @@ function BillsSection({ userId }) {
     e.preventDefault()
     setSaving(true)
 
-    const { error } = await supabase.from('planned_payments').insert({
+    const { data, error } = await supabase.from('planned_payments').insert({
       user_id: userId,
       name,
       category,
@@ -300,11 +301,17 @@ function BillsSection({ userId }) {
       recurrence,
       due_date: dueDate,
       is_paid: false,
-    })
+    }).select().single()
 
     if (error) {
       console.error('Error adding bill:', error.message)
     } else {
+      // Schedule a reminder notification for this new bill
+      try {
+        await scheduleBillReminder(data)
+      } catch (notifErr) {
+        console.error('Error scheduling reminder:', notifErr.message)
+      }
       setName(''); setAmount(''); setDueDate('')
       setShowForm(false)
       fetchBills()
@@ -314,11 +321,26 @@ function BillsSection({ userId }) {
 
   const handleDelete = async (id) => {
     const { error } = await supabase.from('planned_payments').delete().eq('id', id)
-    if (!error) fetchBills()
+    if (!error) {
+      // Cancel any pending reminder for this bill so it doesn't fire after deletion
+      try {
+        await cancelBillReminder(id)
+      } catch (notifErr) {
+        console.error('Error cancelling reminder:', notifErr.message)
+      }
+      fetchBills()
+    }
   }
 
   // Marks paid, and if recurring, rolls the due_date forward and resets is_paid
   const handleMarkPaid = async (bill) => {
+    // Cancel today's reminder either way — it's done its job
+    try {
+      await cancelBillReminder(bill.id)
+    } catch (notifErr) {
+      console.error('Error cancelling reminder:', notifErr.message)
+    }
+
     if (bill.recurrence === 'one-time') {
       const { error } = await supabase
         .from('planned_payments')
@@ -334,12 +356,22 @@ function BillsSection({ userId }) {
 
     const nextDueDate = nextDate.toISOString().split('T')[0]
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('planned_payments')
       .update({ is_paid: false, due_date: nextDueDate })
       .eq('id', bill.id)
+      .select()
+      .single()
 
-    if (!error) fetchBills()
+    if (!error) {
+      // Schedule the reminder for the next cycle
+      try {
+        await scheduleBillReminder(data)
+      } catch (notifErr) {
+        console.error('Error scheduling next reminder:', notifErr.message)
+      }
+      fetchBills()
+    }
   }
 
   const daysUntil = (dateStr) => {
@@ -440,22 +472,5 @@ function BillsSection({ userId }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <Tag color={NEON_PURPLE}>{bill.category}</Tag>
-                <Tag color={statusColor}>{statusText}</Tag>
-                <button
-                  onClick={() => handleDelete(bill.id)}
-                  style={{
-                    marginLeft: 'auto', width: 26, height: 26, borderRadius: 8, border: 'none',
-                    background: 'rgba(255,255,255,0.06)', color: '#7A7A7A', fontSize: 13, cursor: 'pointer',
-                  }}
-                >
-                  🗑
-                </button>
-              </div>
-              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{bill.name}</h3>
-              <p style={{ fontSize: 12.5, color: '#7A7A7A', margin: '2px 0 12px' }}>
-                {bill.recurrence.charAt(0).toUpperCase() + bill.recurrence.slice(1)} · Due {new Date(bill.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ color: 
+<Tag color={statusColor}>{statusText}</Tag>
+<button onClick={() => handleDelete(bill.id)} ...>🗑</button>
