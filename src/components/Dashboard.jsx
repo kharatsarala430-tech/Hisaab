@@ -119,6 +119,7 @@ export default function Dashboard({ session }) {
   return (
     <div style={{
       minHeight: '100vh',
+      minHeight: '100dvh',
       background: '#050505',
       color: '#EAEAEA',
       fontFamily: "'Inter', -apple-system, sans-serif",
@@ -207,4 +208,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-                }
+      }
