@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
+import { requestNotificationPermission } from './lib/notifications'
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -20,6 +21,10 @@ export default function App() {
     })
 
     return () => listener.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    requestNotificationPermission()
   }, [])
 
   if (loading) {
