@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const LOAN_TYPES = ['Gadget Loan', 'Home Loan', 'Auto Loan', 'Personal Loan', 'Education Loan', 'Other']
+const BILL_CATEGORIES = ['Subscription', 'Utility', 'Insurance', 'Rent', 'Other']
+const RECURRENCE_OPTIONS = ['monthly', 'yearly', 'one-time']
+
 const NEON_PURPLE = '#A78BFA'
 const NEON_RED = '#FF3D6E'
 const NEON_GREEN = '#39FF94'
@@ -20,6 +23,46 @@ const inputStyle = {
 }
 
 export default function EmiManager({ userId }) {
+  const [activeTab, setActiveTab] = useState('emis') // 'emis' | 'bills'
+
+  return (
+    <div>
+      {/* Toggle */}
+      <div style={{
+        display: 'flex', gap: 8, marginBottom: 18, background: '#0D0D0D',
+        padding: 5, borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        <button
+          onClick={() => setActiveTab('emis')}
+          style={{
+            flex: 1, padding: '10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+            background: activeTab === 'emis' ? NEON_PURPLE : 'transparent',
+            color: activeTab === 'emis' ? '#150F2E' : '#9A9A9A',
+            fontWeight: 700, fontSize: 13.5,
+          }}
+        >
+          EMIs
+        </button>
+        <button
+          onClick={() => setActiveTab('bills')}
+          style={{
+            flex: 1, padding: '10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+            background: activeTab === 'bills' ? NEON_PURPLE : 'transparent',
+            color: activeTab === 'bills' ? '#150F2E' : '#9A9A9A',
+            fontWeight: 700, fontSize: 13.5,
+          }}
+        >
+          Bills
+        </button>
+      </div>
+
+      {activeTab === 'emis' ? <EmiSection userId={userId} /> : <BillsSection userId={userId} />}
+    </div>
+  )
+}
+
+/* ============ EMI SECTION (unchanged logic, just extracted) ============ */
+function EmiSection({ userId }) {
   const [emis, setEmis] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -215,26 +258,204 @@ export default function EmiManager({ userId }) {
   )
 }
 
-function StatCard({ label, value, sub, accent }) {
-  return (
-    <div style={{
-      background: '#0D0D0D', borderRadius: 14, padding: '14px 16px',
-      border: '1px solid rgba(255,255,255,0.08)',
-    }}>
-      <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 5 }}>{label}</div>
-      <div style={{ fontSize: 17, fontWeight: 700, color: accent, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-      <div style={{ fontSize: 10.5, color: '#5C5C5C', marginTop: 3 }}>{sub}</div>
-    </div>
-  )
-}
+/* ============ BILLS SECTION (new) ============ */
+function BillsSection({ userId }) {
+  const [bills, setBills] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
 
-function Tag({ children, color = '#B8B8B8' }) {
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState(BILL_CATEGORIES[0])
+  const [amount, setAmount] = useState('')
+  const [recurrence, setRecurrence] = useState(RECURRENCE_OPTIONS[0])
+  const [dueDate, setDueDate] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const fetchBills = async () => {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('planned_payments')
+      .select('*')
+      .eq('user_id', userId)
+      .order('due_date', { ascending: true })
+
+    if (error) console.error('Error fetching bills:', error.message)
+    else setBills(data)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchBills()
+  }, [])
+
+  const handleAddBill = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+
+    const { error } = await supabase.from('planned_payments').insert({
+      user_id: userId,
+      name,
+      category,
+      amount: amount === '' ? null : Number(amount),
+      recurrence,
+      due_date: dueDate,
+      is_paid: false,
+    })
+
+    if (error) {
+      console.error('Error adding bill:', error.message)
+    } else {
+      setName(''); setAmount(''); setDueDate('')
+      setShowForm(false)
+      fetchBills()
+    }
+    setSaving(false)
+  }
+
+  const handleDelete = async (id) => {
+    const { error } = await supabase.from('planned_payments').delete().eq('id', id)
+    if (!error) fetchBills()
+  }
+
+  // Marks paid, and if recurring, rolls the due_date forward and resets is_paid
+  const handleMarkPaid = async (bill) => {
+    if (bill.recurrence === 'one-time') {
+      const { error } = await supabase
+        .from('planned_payments')
+        .update({ is_paid: true })
+        .eq('id', bill.id)
+      if (!error) fetchBills()
+      return
+    }
+
+    const nextDate = new Date(bill.due_date)
+    if (bill.recurrence === 'monthly') nextDate.setMonth(nextDate.getMonth() + 1)
+    if (bill.recurrence === 'yearly') nextDate.setFullYear(nextDate.getFullYear() + 1)
+
+    const nextDueDate = nextDate.toISOString().split('T')[0]
+
+    const { error } = await supabase
+      .from('planned_payments')
+      .update({ is_paid: false, due_date: nextDueDate })
+      .eq('id', bill.id)
+
+    if (!error) fetchBills()
+  }
+
+  const daysUntil = (dateStr) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const due = new Date(dateStr)
+    due.setHours(0, 0, 0, 0)
+    return Math.round((due - today) / (1000 * 60 * 60 * 24))
+  }
+
+  const unpaidBills = bills.filter((b) => !b.is_paid)
+  const totalDueThisCycle = unpaidBills.reduce((sum, b) => sum + Number(b.amount || 0), 0)
+  const overdueCount = unpaidBills.filter((b) => daysUntil(b.due_date) < 0).length
+  const dueSoonCount = unpaidBills.filter((b) => {
+    const d = daysUntil(b.due_date)
+    return d >= 0 && d <= 3
+  }).length
+
   return (
-    <span style={{
-      fontSize: 10.5, padding: '4px 9px', borderRadius: 20,
-      background: `${color}22`, color, fontWeight: 500,
-    }}>
-      {children}
-    </span>
-  )
-          }
+    <div>
+      {/* Hero card */}
+      <div style={{
+        background: '#0D0D0D', borderRadius: 20, padding: '22px', marginBottom: 18,
+        border: `1px solid rgba(167,139,250,0.3)`,
+        boxShadow: '0 0 40px rgba(167,139,250,0.08)',
+      }}>
+        <span style={{
+          fontSize: 11, background: 'rgba(167,139,250,0.14)', padding: '4px 10px',
+          borderRadius: 20, color: '#C4B5FD',
+        }}>Bills & Subscriptions</span>
+        <h2 style={{ fontSize: 24, fontWeight: 600, margin: '10px 0 4px', color: '#F5F5F5' }}>Planned Payments</h2>
+        <p style={{ fontSize: 12.5, color: '#9A9A9A', marginBottom: 16 }}>
+          Track recurring bills, subscriptions & one-time payments.
+        </p>
+        <button onClick={() => setShowForm(!showForm)} style={{
+          width: '100%', padding: 12, borderRadius: 12, border: 'none',
+          background: NEON_PURPLE, color: '#150F2E', fontWeight: 700, fontSize: 13.5,
+          boxShadow: '0 0 20px rgba(167,139,250,0.4)',
+        }}>
+          + Add New Payment
+        </button>
+      </div>
+
+      {/* Add Bill form */}
+      {showForm && (
+        <form onSubmit={handleAddBill} style={{
+          background: '#0D0D0D', borderRadius: 16, padding: 18, marginBottom: 18,
+          border: '1px solid rgba(167,139,250,0.2)',
+        }}>
+          <input placeholder="Payment Name (e.g. Netflix)" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} />
+          <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
+            {BILL_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <input type="number" placeholder="Amount (₹) — leave blank if it varies" value={amount} onChange={(e) => setAmount(e.target.value)} min="0" style={inputStyle} />
+          <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} style={inputStyle}>
+            {RECURRENCE_OPTIONS.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+          </select>
+          <input type="date" placeholder="Due Date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required style={{ ...inputStyle, marginBottom: 16 }} />
+          <button type="submit" disabled={saving} style={{
+            width: '100%', padding: '14px', borderRadius: 14, border: 'none',
+            background: NEON_PURPLE, color: '#150F2E', fontWeight: 700, fontSize: 14.5,
+            opacity: saving ? 0.6 : 1,
+          }}>
+            {saving ? 'Saving...' : 'Save Payment'}
+          </button>
+        </form>
+      )}
+
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
+        <StatCard label="Due This Cycle" value={`₹${totalDueThisCycle.toLocaleString()}`} sub={`${unpaidBills.length} Unpaid`} accent={NEON_PURPLE} />
+        <StatCard label="Overdue" value={`${overdueCount}`} sub="Past due date" accent={NEON_RED} />
+        <StatCard label="Due Soon" value={`${dueSoonCount}`} sub="Within 3 days" accent={NEON_AMBER} />
+        <StatCard label="Total Tracked" value={`${bills.length}`} sub="All payments" accent="#F5F5F5" />
+      </div>
+
+      {/* Bills list */}
+      {loading ? (
+        <p style={{ color: '#7A7A7A', fontSize: 13.5, textAlign: 'center', padding: 20 }}>Loading payments...</p>
+      ) : bills.length === 0 ? (
+        <p style={{ color: '#7A7A7A', fontSize: 13.5, textAlign: 'center', padding: 20 }}>No planned payments added yet.</p>
+      ) : (
+        bills.map((bill) => {
+          const days = daysUntil(bill.due_date)
+          const isOverdue = days < 0 && !bill.is_paid
+          const isDueSoon = days >= 0 && days <= 3 && !bill.is_paid
+
+          let statusColor = '#7A7A7A'
+          let statusText = `Due in ${days} days`
+          if (bill.is_paid) { statusColor = NEON_GREEN; statusText = 'Paid' }
+          else if (isOverdue) { statusColor = NEON_RED; statusText = `Overdue by ${Math.abs(days)} days` }
+          else if (isDueSoon) { statusColor = NEON_AMBER; statusText = days === 0 ? 'Due today' : `Due in ${days} days` }
+
+          return (
+            <div key={bill.id} style={{
+              background: '#0D0D0D', borderRadius: 16, padding: 18, marginBottom: 12,
+              border: `1px solid ${isOverdue ? 'rgba(255,61,110,0.3)' : 'rgba(255,255,255,0.08)'}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <Tag color={NEON_PURPLE}>{bill.category}</Tag>
+                <Tag color={statusColor}>{statusText}</Tag>
+                <button
+                  onClick={() => handleDelete(bill.id)}
+                  style={{
+                    marginLeft: 'auto', width: 26, height: 26, borderRadius: 8, border: 'none',
+                    background: 'rgba(255,255,255,0.06)', color: '#7A7A7A', fontSize: 13, cursor: 'pointer',
+                  }}
+                >
+                  🗑
+                </button>
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{bill.name}</h3>
+              <p style={{ fontSize: 12.5, color: '#7A7A7A', margin: '2px 0 12px' }}>
+                {bill.recurrence.charAt(0).toUpperCase() + bill.recurrence.slice(1)} · Due {new Date(bill.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ color: 
