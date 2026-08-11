@@ -46,42 +46,39 @@ export default function Summary({ transactions }) {
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
         <div style={{
-          background: '#0D0D0D', borderRadius: 14, padding: '14px 10px', textAlign: 'center',
+          background: '#0D0D0D', borderRadius: 14, padding: '14px 8px', textAlign: 'center',
           border: '1px solid rgba(61,169,255,0.25)', minWidth: 0,
         }}>
           <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 6 }}>Balance</div>
           <div style={{
-            fontSize: 'clamp(11px, 4vw, 16px)', fontWeight: 700, color: NEON_BLUE,
-            fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            fontSize: 'clamp(12px, 3.6vw, 16px)', fontWeight: 700, color: NEON_BLUE,
+            fontVariantNumeric: 'tabular-nums', wordBreak: 'break-all', lineHeight: 1.2,
           }}>
-            ₹{balance.toFixed(2)}
+            ₹{balance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </div>
         </div>
         <div style={{
-          background: '#0D0D0D', borderRadius: 14, padding: '14px 10px', textAlign: 'center',
+          background: '#0D0D0D', borderRadius: 14, padding: '14px 8px', textAlign: 'center',
           border: '1px solid rgba(255,255,255,0.08)', minWidth: 0,
         }}>
           <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 6 }}>Income</div>
           <div style={{
-            fontSize: 'clamp(11px, 4vw, 16px)', fontWeight: 700, color: NEON_GREEN,
-            fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            fontSize: 'clamp(12px, 3.6vw, 16px)', fontWeight: 700, color: NEON_GREEN,
+            fontVariantNumeric: 'tabular-nums', wordBreak: 'break-all', lineHeight: 1.2,
           }}>
-            ₹{totalIncome.toFixed(2)}
+            ₹{totalIncome.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </div>
         </div>
         <div style={{
-          background: '#0D0D0D', borderRadius: 14, padding: '14px 10px', textAlign: 'center',
+          background: '#0D0D0D', borderRadius: 14, padding: '14px 8px', textAlign: 'center',
           border: '1px solid rgba(255,255,255,0.08)', minWidth: 0,
         }}>
           <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 6 }}>Expenses</div>
           <div style={{
-            fontSize: 'clamp(11px, 4vw, 16px)', fontWeight: 700, color: NEON_RED,
-            fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            fontSize: 'clamp(12px, 3.6vw, 16px)', fontWeight: 700, color: NEON_RED,
+            fontVariantNumeric: 'tabular-nums', wordBreak: 'break-all', lineHeight: 1.2,
           }}>
-            ₹{totalExpense.toFixed(2)}
+            ₹{totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </div>
         </div>
       </div>
