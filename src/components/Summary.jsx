@@ -47,28 +47,40 @@ export default function Summary({ transactions }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
         <div style={{
           background: '#0D0D0D', borderRadius: 14, padding: '14px 10px', textAlign: 'center',
-          border: '1px solid rgba(61,169,255,0.25)',
+          border: '1px solid rgba(61,169,255,0.25)', minWidth: 0,
         }}>
           <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 6 }}>Balance</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: NEON_BLUE, fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{
+            fontSize: 'clamp(11px, 4vw, 16px)', fontWeight: 700, color: NEON_BLUE,
+            fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
             ₹{balance.toFixed(2)}
           </div>
         </div>
         <div style={{
           background: '#0D0D0D', borderRadius: 14, padding: '14px 10px', textAlign: 'center',
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.08)', minWidth: 0,
         }}>
           <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 6 }}>Income</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: NEON_GREEN, fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{
+            fontSize: 'clamp(11px, 4vw, 16px)', fontWeight: 700, color: NEON_GREEN,
+            fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
             ₹{totalIncome.toFixed(2)}
           </div>
         </div>
         <div style={{
           background: '#0D0D0D', borderRadius: 14, padding: '14px 10px', textAlign: 'center',
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.08)', minWidth: 0,
         }}>
           <div style={{ fontSize: 11, color: '#7A7A7A', marginBottom: 6 }}>Expenses</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: NEON_RED, fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{
+            fontSize: 'clamp(11px, 4vw, 16px)', fontWeight: 700, color: NEON_RED,
+            fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
             ₹{totalExpense.toFixed(2)}
           </div>
         </div>
@@ -137,4 +149,4 @@ export default function Summary({ transactions }) {
       )}
     </div>
   )
-          }
+}
