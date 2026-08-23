@@ -8,6 +8,7 @@ import EmiManager from './EmiManager'
 import BudgetPlanner from './BudgetPlanner'
 import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
+import Sidebar from './Sidebar'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
 
 export default function Dashboard({ session }) {
@@ -127,7 +128,6 @@ export default function Dashboard({ session }) {
 
   return (
     <div style={{
-      minHeight: '100vh',
       minHeight: '100dvh',
       background: '#050505',
       color: '#EAEAEA',
@@ -136,31 +136,33 @@ export default function Dashboard({ session }) {
       overflowX: 'hidden',
       width: '100%',
     }}>
+      {/* Sidebar renders its own hamburger button + drawer — just drop it in */}
+      <Sidebar
+        session={session}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onDownloadReport={handleDownloadReport}
+        onLogout={handleLogout}
+      />
+
       <header style={{
-        padding: '22px 18px 20px',
+        padding: '18px 18px 20px',
         background: '#0A0A0A',
         borderBottom: '1px solid rgba(61,169,255,0.15)',
         marginBottom: 20,
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <div>
           <h1 style={{
             fontFamily: "'Georgia', serif",
-            fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em',
+            fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em',
             color: '#3DA9FF', textShadow: '0 0 18px rgba(61,169,255,0.5)',
             margin: 0,
           }}>
             Hisaab
           </h1>
-          <p style={{ fontSize: 12.5, color: '#7A7A7A', marginTop: 2 }}>{session.user.email}</p>
+          <p style={{ fontSize: 12, color: '#7A7A7A', marginTop: 2 }}>{session.user.email}</p>
         </div>
-        <button onClick={handleLogout} style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
-          color: '#B8B8B8', fontSize: 12.5, padding: '7px 12px', borderRadius: 20,
-        }}>
-          Logout
-        </button>
       </header>
 
       <div style={{ padding: '0 18px' }}>
@@ -184,19 +186,6 @@ export default function Dashboard({ session }) {
             ))}
           </select>
         )}
-
-        <button onClick={handleDownloadReport} disabled={generatingReport || !initialDataLoaded} style={{
-          width: '100%', padding: '11px', borderRadius: 12, marginBottom: 20,
-          background: 'transparent', color: '#B8B8B8', fontSize: 13, fontWeight: 500,
-          border: '1px solid rgba(255,255,255,0.15)',
-          opacity: (generatingReport || !initialDataLoaded) ? 0.6 : 1,
-        }}>
-          📄 {generatingReport
-            ? 'Generating Report...'
-            : !initialDataLoaded
-              ? 'Loading data...'
-              : `Download Report (${formatMonthLabel(selectedMonth)})`}
-        </button>
 
         {activeTab === 'dashboard' && (
           <>
@@ -223,4 +212,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-      }
+}
