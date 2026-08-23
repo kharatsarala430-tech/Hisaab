@@ -9,6 +9,7 @@ import BudgetPlanner from './BudgetPlanner'
 import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
+import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
 
 export default function Dashboard({ session }) {
@@ -126,6 +127,18 @@ export default function Dashboard({ session }) {
     }
   }
 
+  const handleExportCSV = async () => {
+    try {
+      await exportTransactionsToCSV(
+        filteredTransactions,
+        `hisaab-${selectedMonth}.csv`
+      )
+    } catch (error) {
+      console.error('CSV export failed:', error)
+      alert('Kuch gadbad ho gayi CSV export mein. Dobara try karo.')
+    }
+  }
+
   return (
     <div style={{
       minHeight: '100dvh',
@@ -142,6 +155,7 @@ export default function Dashboard({ session }) {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onDownloadReport={handleDownloadReport}
+        onExportCSV={handleExportCSV}
         onLogout={handleLogout}
       />
 
@@ -212,4 +226,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-}
+          }
