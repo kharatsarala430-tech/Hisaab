@@ -24,10 +24,10 @@ const ROUTES = [
   { key: "emi", label: "EMI Manager", icon: "💳" },
   { key: "budget", label: "Budget Planner", icon: "📊" },
   { key: "savings", label: "Savings Goals", icon: "🎯" },
+  { key: "udhaar", label: "Udhaar / Khata", icon: "🤝" },
 ];
 
 const COMING_SOON = [
-  { label: "Udhaar / Khata", icon: "🤝" },
   { label: "Bill Reminders", icon: "🔔" },
   { label: "Settings", icon: "⚙️" },
 ];
