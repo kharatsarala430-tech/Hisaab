@@ -9,6 +9,7 @@ import BudgetPlanner from './BudgetPlanner'
 import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
+import UdhaarTracker from './UdhaarTracker'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { getWeeklyNudge } from '../utils/spendingNudges'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
@@ -246,9 +247,11 @@ export default function Dashboard({ session }) {
         {activeTab === 'budget' && <BudgetPlanner transactions={filteredTransactions} />}
 
         {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
+
+        {activeTab === 'udhaar' && <UdhaarTracker userId={session.user.id} />}
       </div>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-        }
+      }
