@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { scheduleBillReminder, cancelBillReminder } from '../lib/notifications'
+import { scheduleEmiReminders, cancelEmiReminders } from '../utils/emiNotifications'
 
 const LOAN_TYPES = ['Gadget Loan', 'Home Loan', 'Auto Loan', 'Personal Loan', 'Education Loan', 'Other']
 const BILL_CATEGORIES = ['Subscription', 'Utility', 'Insurance', 'Rent', 'Other']
@@ -98,7 +99,7 @@ function EmiSection({ userId }) {
     e.preventDefault()
     setSaving(true)
 
-    const { error } = await supabase.from('emis').insert({
+    const { data, error } = await supabase.from('emis').insert({
       user_id: userId,
       loan_name: loanName,
       lender,
@@ -108,11 +109,17 @@ function EmiSection({ userId }) {
       due_day: Number(dueDay),
       total_installments: Number(totalInstallments),
       installments_paid: 0,
-    })
+    }).select().single()
 
     if (error) {
       console.error('Error adding EMI:', error.message)
     } else {
+      // Schedule the monthly due-day reminders for this EMI
+      try {
+        await scheduleEmiReminders(data)
+      } catch (notifErr) {
+        console.error('Error scheduling EMI reminder:', notifErr.message)
+      }
       setLoanName(''); setLender(''); setPrincipal(''); setInstallment(''); setTotalInstallments('')
       setShowForm(false)
       fetchEmis()
@@ -122,7 +129,15 @@ function EmiSection({ userId }) {
 
   const handleDelete = async (id) => {
     const { error } = await supabase.from('emis').delete().eq('id', id)
-    if (!error) fetchEmis()
+    if (!error) {
+      // Cancel the recurring reminders so they don't keep firing for a deleted EMI
+      try {
+        await cancelEmiReminders(id)
+      } catch (notifErr) {
+        console.error('Error cancelling EMI reminder:', notifErr.message)
+      }
+      fetchEmis()
+    }
   }
 
   const monthlyCommitment = emis.reduce((sum, e) => sum + Number(e.monthly_installment), 0)
