@@ -10,6 +10,7 @@ import { useState } from "react";
  *   activeTab       -> current tab string ('dashboard' | 'emi' | 'budget' | 'savings')
  *   onTabChange     -> function(tabKey) — same setActiveTab you already use
  *   onDownloadReport-> your existing handleDownloadReport function
+ *   onExportCSV     -> handleExportCSV function (exports current month's transactions as CSV)
  *   onLogout        -> your existing handleLogout function
  */
 
@@ -31,7 +32,7 @@ const COMING_SOON = [
   { label: "Settings", icon: "⚙️" },
 ];
 
-export default function Sidebar({ session, activeTab, onTabChange, onDownloadReport, onLogout }) {
+export default function Sidebar({ session, activeTab, onTabChange, onDownloadReport, onExportCSV, onLogout }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -112,6 +113,18 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
           >
             <span style={{ fontSize: 18, width: 24 }}>📄</span>
             <span style={{ fontSize: 15, color: "#EAEAEA" }}>Download Report</span>
+          </button>
+
+          {/* Export CSV — separate from PDF report, raw data for Excel/Sheets */}
+          <button
+            onClick={() => {
+              onExportCSV?.();
+              close();
+            }}
+            style={styles.menuItem}
+          >
+            <span style={{ fontSize: 18, width: 24 }}>🧾</span>
+            <span style={{ fontSize: 15, color: "#EAEAEA" }}>Export CSV</span>
           </button>
         </nav>
 
