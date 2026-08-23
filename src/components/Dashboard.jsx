@@ -10,6 +10,7 @@ import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
+import { getWeeklyNudge } from '../utils/spendingNudges'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
 
 export default function Dashboard({ session }) {
@@ -89,6 +90,21 @@ export default function Dashboard({ session }) {
   // EMIs and Savings Goals are intentionally NOT filtered by month; they persist
   // until the loan/goal itself is finished, independent of the monthly transaction view.
   const filteredTransactions = transactions.filter(t => t.date.slice(0, 7) === selectedMonth)
+
+  // This-week vs last-week split — used only for the spending reflection nudge.
+  // Independent of the month selector on purpose (a nudge should always talk
+  // about "this week" regardless of which month the user is browsing).
+  const isoDaysAgo = (n) => {
+    const d = new Date()
+    d.setDate(d.getDate() - n)
+    return d.toISOString().slice(0, 10)
+  }
+  const todayStr = isoDaysAgo(0)
+  const weekAgoStr = isoDaysAgo(7)
+  const twoWeeksAgoStr = isoDaysAgo(14)
+  const thisWeekTxns = transactions.filter(t => t.date >= weekAgoStr && t.date <= todayStr)
+  const lastWeekTxns = transactions.filter(t => t.date >= twoWeeksAgoStr && t.date < weekAgoStr)
+  const weeklyNudge = getWeeklyNudge(thisWeekTxns, lastWeekTxns)
 
   useEffect(() => {
     fetchTransactions()
@@ -203,6 +219,15 @@ export default function Dashboard({ session }) {
 
         {activeTab === 'dashboard' && (
           <>
+            {weeklyNudge && (
+              <div style={{
+                padding: '12px 14px', marginBottom: 14, borderRadius: 12,
+                background: 'rgba(61,169,255,0.06)', border: '1px solid rgba(61,169,255,0.2)',
+                fontSize: 13, color: '#B8D9F0', lineHeight: 1.4,
+              }}>
+                💡 {weeklyNudge.text}
+              </div>
+            )}
             <Summary transactions={filteredTransactions} />
             <AddTransaction
               userId={session.user.id}
@@ -226,4 +251,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-          }
+        }
