@@ -198,6 +198,7 @@ export default function Dashboard({ session }) {
       </header>
 
       <div style={{ padding: '0 18px' }}>
+        <ErrorBoundary>
         {/* Month selector — only affects the Dashboard/Transactions view and the report.
             EMI and Savings tabs are unaffected since those aren't month-based. */}
         {activeTab === 'dashboard' && (
@@ -249,14 +250,11 @@ export default function Dashboard({ session }) {
 
         {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
 
-        {activeTab === 'udhaar' && (
-          <ErrorBoundary>
-            <UdhaarTracker userId={session.user.id} />
-          </ErrorBoundary>
-        )}
+        {activeTab === 'udhaar' && <UdhaarTracker userId={session.user.id} />}
+        </ErrorBoundary>
       </div>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-  }
+                }
