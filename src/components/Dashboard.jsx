@@ -10,6 +10,7 @@ import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
 import UdhaarTracker from './UdhaarTracker'
+import SettingsPage from './SettingsPage'
 import ErrorBoundary from './ErrorBoundary'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { getWeeklyNudge } from '../utils/spendingNudges'
@@ -193,7 +194,6 @@ export default function Dashboard({ session }) {
           }}>
             Hisaab
           </h1>
-          <p style={{ fontSize: 12, color: '#7A7A7A', marginTop: 2 }}>{session.user.email}</p>
         </div>
       </header>
 
@@ -251,10 +251,14 @@ export default function Dashboard({ session }) {
         {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
 
         {activeTab === 'udhaar' && <UdhaarTracker userId={session.user.id} />}
+
+        {activeTab === 'settings' && (
+          <SettingsPage session={session} onLogout={handleLogout} />
+        )}
         </ErrorBoundary>
       </div>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-                }
+      }
