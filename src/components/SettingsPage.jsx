@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 /**
  * Hisaab — Settings Page
@@ -21,17 +22,38 @@ const BORDER = "rgba(61,169,255,0.15)";
 const TEXT_MUTED = "#7A7A7A";
 
 export default function SettingsPage({ session, onLogout }) {
-  // Theme toggle is local UI state for now — wire to your real theme
-  // context/provider once dark/light theming is actually built.
-  const [darkMode, setDarkMode] = useState(true);
-  const [notifPermission, setNotifPermission] = useState(
-    typeof Notification !== "undefined" ? Notification.permission : "default"
-  );
+  // Theme toggle — persisted to localStorage so it survives navigating away
+  // and coming back. Still needs wiring to your actual theme provider once
+  // dark/light theming is built; this just remembers the user's choice.
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("hisaab_dark_mode");
+    return saved === null ? true : saved === "true";
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((v) => {
+      const next = !v;
+      localStorage.setItem("hisaab_dark_mode", String(next));
+      return next;
+    });
+  };
+
+  // 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' | 'checking'
+  const [notifPermission, setNotifPermission] = useState("checking");
+
+  useEffect(() => {
+    LocalNotifications.checkPermissions()
+      .then((result) => setNotifPermission(result.display))
+      .catch(() => setNotifPermission("prompt"));
+  }, []);
 
   const requestNotifPermission = async () => {
-    if (typeof Notification === "undefined") return;
-    const result = await Notification.requestPermission();
-    setNotifPermission(result);
+    try {
+      const result = await LocalNotifications.requestPermissions();
+      setNotifPermission(result.display);
+    } catch (error) {
+      console.error("Notification permission request failed:", error);
+    }
   };
 
   const handleInvite = async () => {
@@ -78,7 +100,7 @@ export default function SettingsPage({ session, onLogout }) {
           label="Dark Mode"
           toggle
           checked={darkMode}
-          onToggle={() => setDarkMode((v) => !v)}
+          onToggle={toggleDarkMode}
         />
       </Section>
 
@@ -91,10 +113,18 @@ export default function SettingsPage({ session, onLogout }) {
             notifPermission === "granted"
               ? "Allowed"
               : notifPermission === "denied"
-              ? "Blocked"
+              ? "Blocked — enable in Android Settings"
+              : notifPermission === "checking"
+              ? "Checking…"
               : "Not set"
           }
-          onClick={notifPermission === "default" ? requestNotifPermission : undefined}
+          onClick={
+            notifPermission === "granted" || notifPermission === "checking"
+              ? undefined
+              : notifPermission === "denied"
+              ? undefined // Android blocks re-prompting once denied — must go to system Settings
+              : requestNotifPermission
+          }
         />
       </Section>
 
