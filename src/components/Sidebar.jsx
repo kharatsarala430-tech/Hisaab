@@ -27,9 +27,10 @@ const ROUTES = [
   { key: "udhaar", label: "Udhaar / Khata", icon: "🤝" },
 ];
 
+const SETTINGS_ROUTE = { key: "settings", label: "Settings", icon: "⚙️" };
+
 const COMING_SOON = [
   { label: "Bill Reminders", icon: "🔔" },
-  { label: "Settings", icon: "⚙️" },
 ];
 
 export default function Sidebar({ session, activeTab, onTabChange, onDownloadReport, onExportCSV, onLogout }) {
@@ -126,6 +127,32 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
             <span style={{ fontSize: 18, width: 24 }}>🧾</span>
             <span style={{ fontSize: 15, color: "#EAEAEA" }}>Export CSV</span>
           </button>
+        </nav>
+
+        <div style={styles.divider} />
+
+        {/* Settings — separate from the main tabs since it's app config, not a content view */}
+        <nav>
+          {(() => {
+            const isActive = activeTab === SETTINGS_ROUTE.key;
+            return (
+              <button
+                onClick={() => {
+                  onTabChange?.(SETTINGS_ROUTE.key);
+                  close();
+                }}
+                style={{
+                  ...styles.menuItem,
+                  backgroundColor: isActive ? "rgba(61,169,255,0.08)" : "transparent",
+                  color: isActive ? ACCENT : "#EAEAEA",
+                  borderLeft: isActive ? `3px solid ${ACCENT}` : "3px solid transparent",
+                }}
+              >
+                <span style={{ fontSize: 18, width: 24 }}>{SETTINGS_ROUTE.icon}</span>
+                <span style={{ fontSize: 15 }}>{SETTINGS_ROUTE.label}</span>
+              </button>
+            );
+          })()}
         </nav>
 
         <div style={styles.divider} />
