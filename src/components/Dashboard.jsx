@@ -10,6 +10,7 @@ import SavingsGoals from './SavingsGoals'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
 import UdhaarTracker from './UdhaarTracker'
+import ErrorBoundary from './ErrorBoundary'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { getWeeklyNudge } from '../utils/spendingNudges'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
@@ -248,10 +249,14 @@ export default function Dashboard({ session }) {
 
         {activeTab === 'savings' && <SavingsGoals userId={session.user.id} />}
 
-        {activeTab === 'udhaar' && <UdhaarTracker userId={session.user.id} />}
+        {activeTab === 'udhaar' && (
+          <ErrorBoundary>
+            <UdhaarTracker userId={session.user.id} />
+          </ErrorBoundary>
+        )}
       </div>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-      }
+  }
