@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { scheduleUdhaarReminders, cancelUdhaarReminders } from '../utils/udhaarNotifications'
+import { useTheme } from '../ThemeContext'
 
 /**
  * Hisaab — Udhaar / Khata Tracker
@@ -12,9 +13,14 @@ import { scheduleUdhaarReminders, cancelUdhaarReminders } from '../utils/udhaarN
  *   {activeTab === 'udhaar' && <UdhaarTracker userId={session.user.id} />}
  */
 
-const ACCENT = '#3DA9FF'
-
 export default function UdhaarTracker({ userId }) {
+  const { theme } = useTheme()
+  const inputStyle = {
+    width: '100%', padding: '11px 12px', marginBottom: 10,
+    background: theme.bg, border: `1px solid ${theme.borderSoft}`,
+    borderRadius: 8, color: theme.text, fontSize: 14, outline: 'none',
+  }
+
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedPerson, setExpandedPerson] = useState(null)
@@ -126,7 +132,7 @@ export default function UdhaarTracker({ userId }) {
   }
 
   if (loading) {
-    return <p style={{ color: '#7A7A7A', fontSize: 13, padding: '20px 0' }}>Loading...</p>
+    return <p style={{ color: theme.textMuted, fontSize: 13, padding: '20px 0' }}>Loading...</p>
   }
 
   return (
@@ -135,9 +141,9 @@ export default function UdhaarTracker({ userId }) {
         onClick={() => setShowForm(!showForm)}
         style={{
           width: '100%', padding: '12px', borderRadius: 12, marginBottom: 16,
-          background: showForm ? 'transparent' : ACCENT,
-          color: showForm ? ACCENT : '#050505',
-          border: `1px solid ${ACCENT}`, fontSize: 14, fontWeight: 600,
+          background: showForm ? 'transparent' : theme.accent,
+          color: showForm ? theme.accent : theme.bg,
+          border: `1px solid ${theme.accent}`, fontSize: 14, fontWeight: 600,
         }}
       >
         {showForm ? 'Cancel' : '+ Naya Udhaar Entry'}
@@ -145,7 +151,7 @@ export default function UdhaarTracker({ userId }) {
 
       {showForm && (
         <form onSubmit={handleAddEntry} style={{
-          background: '#0D0D0D', border: '1px solid rgba(61,169,255,0.2)',
+          background: theme.card, border: `1px solid ${theme.border}`,
           borderRadius: 12, padding: 14, marginBottom: 16,
         }}>
           <input
@@ -162,17 +168,17 @@ export default function UdhaarTracker({ userId }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
             <button type="button" onClick={() => setType('lent')} style={{
               flex: 1, padding: 10, borderRadius: 8, fontSize: 13,
-              background: type === 'lent' ? ACCENT : 'transparent',
-              color: type === 'lent' ? '#050505' : '#B8B8B8',
-              border: '1px solid rgba(255,255,255,0.15)',
+              background: type === 'lent' ? theme.accent : 'transparent',
+              color: type === 'lent' ? theme.bg : theme.textSubtle,
+              border: `1px solid ${theme.borderSoft}`,
             }}>
               Maine Diya
             </button>
             <button type="button" onClick={() => setType('borrowed')} style={{
               flex: 1, padding: 10, borderRadius: 8, fontSize: 13,
-              background: type === 'borrowed' ? ACCENT : 'transparent',
-              color: type === 'borrowed' ? '#050505' : '#B8B8B8',
-              border: '1px solid rgba(255,255,255,0.15)',
+              background: type === 'borrowed' ? theme.accent : 'transparent',
+              color: type === 'borrowed' ? theme.bg : theme.textSubtle,
+              border: `1px solid ${theme.borderSoft}`,
             }}>
               Maine Liya
             </button>
@@ -190,7 +196,7 @@ export default function UdhaarTracker({ userId }) {
             style={inputStyle}
           />
 
-          <label style={{ fontSize: 12, color: '#7A7A7A', display: 'block', marginBottom: 4 }}>
+          <label style={{ fontSize: 12, color: theme.textMuted, display: 'block', marginBottom: 4 }}>
             Kab tak lautana/lena hai? (optional — reminder milega)
           </label>
           <input
@@ -202,7 +208,7 @@ export default function UdhaarTracker({ userId }) {
 
           <button type="submit" disabled={saving} style={{
             width: '100%', padding: 11, borderRadius: 10,
-            background: ACCENT, color: '#050505', fontSize: 14, fontWeight: 600,
+            background: theme.accent, color: theme.bg, fontSize: 14, fontWeight: 600,
             border: 'none', opacity: saving ? 0.6 : 1,
           }}>
             {saving ? 'Saving...' : 'Save Entry'}
@@ -211,7 +217,7 @@ export default function UdhaarTracker({ userId }) {
       )}
 
       {people.length === 0 && (
-        <p style={{ color: '#7A7A7A', fontSize: 13, textAlign: 'center', padding: '30px 0' }}>
+        <p style={{ color: theme.textMuted, fontSize: 13, textAlign: 'center', padding: '30px 0' }}>
           Koi udhaar entry nahi hai abhi. Upar button se add karo.
         </p>
       )}
@@ -219,7 +225,7 @@ export default function UdhaarTracker({ userId }) {
       {people.map((person) => {
         const { entries: personEntries, balance } = grouped[person]
         const isExpanded = expandedPerson === person
-        const balanceColor = balance > 0 ? '#4ADE80' : balance < 0 ? '#F87171' : '#7A7A7A'
+        const balanceColor = balance > 0 ? theme.success : balance < 0 ? theme.danger : theme.textMuted
         const balanceText = balance > 0
           ? `${person} ko ₹${balance.toFixed(0)} lene hain`
           : balance < 0
@@ -228,7 +234,7 @@ export default function UdhaarTracker({ userId }) {
 
         return (
           <div key={person} style={{
-            background: '#0D0D0D', border: '1px solid rgba(255,255,255,0.08)',
+            background: theme.card, border: `1px solid ${theme.borderSoft}`,
             borderRadius: 12, marginBottom: 10, overflow: 'hidden',
           }}>
             <button
@@ -239,7 +245,7 @@ export default function UdhaarTracker({ userId }) {
                 background: 'transparent', border: 'none', textAlign: 'left',
               }}
             >
-              <span style={{ color: '#EAEAEA', fontSize: 14, fontWeight: 600 }}>{person}</span>
+              <span style={{ color: theme.text, fontSize: 14, fontWeight: 600 }}>{person}</span>
               <span style={{ color: balanceColor, fontSize: 13, fontWeight: 600 }}>{balanceText}</span>
             </button>
 
@@ -248,25 +254,25 @@ export default function UdhaarTracker({ userId }) {
                 {personEntries.map((e) => (
                   <div key={e.id} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
+                    padding: '8px 0', borderTop: `1px solid ${theme.borderSoft}`,
                     fontSize: 12.5,
                   }}>
                     <div>
-                      <span style={{ color: e.type === 'lent' ? '#4ADE80' : '#F87171' }}>
+                      <span style={{ color: e.type === 'lent' ? theme.success : theme.danger }}>
                         {e.type === 'lent' ? 'Diya' : 'Liya'} ₹{e.amount}
                       </span>
-                      <span style={{ color: '#7A7A7A', marginLeft: 8 }}>{e.entry_date}</span>
-                      {e.reason && <div style={{ color: '#9A9A9A', marginTop: 2 }}>📝 {e.reason}</div>}
-                      {e.note && <div style={{ color: '#7A7A7A', marginTop: 2 }}>{e.note}</div>}
+                      <span style={{ color: theme.textMuted, marginLeft: 8 }}>{e.entry_date}</span>
+                      {e.reason && <div style={{ color: theme.textSubtle, marginTop: 2 }}>📝 {e.reason}</div>}
+                      {e.note && <div style={{ color: theme.textMuted, marginTop: 2 }}>{e.note}</div>}
                       {e.expected_return_date && (
-                        <div style={{ color: ACCENT, marginTop: 2, fontSize: 11.5 }}>
+                        <div style={{ color: theme.accent, marginTop: 2, fontSize: 11.5 }}>
                           ⏰ Wapas: {e.expected_return_date}
                         </div>
                       )}
                     </div>
                     <button
                       onClick={() => handleDeleteEntry(e.id)}
-                      style={{ background: 'transparent', border: 'none', color: '#7A7A7A', fontSize: 16 }}
+                      style={{ background: 'transparent', border: 'none', color: theme.textMuted, fontSize: 16 }}
                     >
                       ×
                     </button>
@@ -278,8 +284,8 @@ export default function UdhaarTracker({ userId }) {
                     onClick={() => handleSettle(person, balance)}
                     style={{
                       width: '100%', marginTop: 10, padding: 9, borderRadius: 8,
-                      background: 'transparent', border: `1px solid ${ACCENT}`,
-                      color: ACCENT, fontSize: 12.5, fontWeight: 600,
+                      background: 'transparent', border: `1px solid ${theme.accent}`,
+                      color: theme.accent, fontSize: 12.5, fontWeight: 600,
                     }}
                   >
                     ✓ Mark as Settled
@@ -292,10 +298,4 @@ export default function UdhaarTracker({ userId }) {
       })}
     </div>
   )
-}
-
-const inputStyle = {
-  width: '100%', padding: '11px 12px', marginBottom: 10,
-  background: '#050505', border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: 8, color: '#EAEAEA', fontSize: 14, outline: 'none',
-}
+            }
