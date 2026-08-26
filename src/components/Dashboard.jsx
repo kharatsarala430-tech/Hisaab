@@ -12,11 +12,13 @@ import Sidebar from './Sidebar'
 import UdhaarTracker from './UdhaarTracker'
 import SettingsPage from './SettingsPage'
 import ErrorBoundary from './ErrorBoundary'
+import { useTheme } from '../ThemeContext'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { getWeeklyNudge } from '../utils/spendingNudges'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
 
 export default function Dashboard({ session }) {
+  const { theme } = useTheme()
   const [transactions, setTransactions] = useState([])
   const [emis, setEmis] = useState([])
   const [savingsGoals, setSavingsGoals] = useState([])
@@ -161,8 +163,8 @@ export default function Dashboard({ session }) {
   return (
     <div style={{
       minHeight: '100dvh',
-      background: '#050505',
-      color: '#EAEAEA',
+      background: theme.bg,
+      color: theme.text,
       fontFamily: "'Inter', -apple-system, sans-serif",
       paddingBottom: 90,
       overflowX: 'hidden',
@@ -180,8 +182,8 @@ export default function Dashboard({ session }) {
 
       <header style={{
         padding: '18px 18px 20px',
-        background: '#0A0A0A',
-        borderBottom: '1px solid rgba(61,169,255,0.15)',
+        background: theme.bgElevated,
+        borderBottom: `1px solid ${theme.border}`,
         marginBottom: 20,
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
@@ -189,7 +191,7 @@ export default function Dashboard({ session }) {
           <h1 style={{
             fontFamily: "'Georgia', serif",
             fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em',
-            color: '#3DA9FF', textShadow: '0 0 18px rgba(61,169,255,0.5)',
+            color: theme.accent, textShadow: `0 0 18px ${theme.accentBg}`,
             margin: 0,
           }}>
             Hisaab
@@ -207,8 +209,8 @@ export default function Dashboard({ session }) {
             onChange={(e) => setSelectedMonth(e.target.value)}
             style={{
               width: '100%', padding: '12px 14px', marginBottom: 14,
-              background: '#0D0D0D', border: '1px solid rgba(61,169,255,0.25)',
-              borderRadius: 12, color: '#3DA9FF', fontSize: 14, fontWeight: 600,
+              background: theme.card, border: `1px solid ${theme.border}`,
+              borderRadius: 12, color: theme.accent, fontSize: 14, fontWeight: 600,
               outline: 'none',
             }}
           >
@@ -225,8 +227,8 @@ export default function Dashboard({ session }) {
             {weeklyNudge && (
               <div style={{
                 padding: '12px 14px', marginBottom: 14, borderRadius: 12,
-                background: 'rgba(61,169,255,0.06)', border: '1px solid rgba(61,169,255,0.2)',
-                fontSize: 13, color: '#B8D9F0', lineHeight: 1.4,
+                background: theme.accentBg, border: `1px solid ${theme.border}`,
+                fontSize: 13, color: theme.accentSoft, lineHeight: 1.4,
               }}>
                 💡 {weeklyNudge.text}
               </div>
@@ -261,4 +263,4 @@ export default function Dashboard({ session }) {
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
-      }
+                  }
