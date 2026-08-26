@@ -3,8 +3,18 @@ import { supabase } from './lib/supabase'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import { requestNotificationPermission } from './lib/notifications'
+import { ThemeProvider, useTheme } from './ThemeContext'
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
+  )
+}
+
+function AppInner() {
+  const { theme } = useTheme()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -29,7 +39,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="loading-screen">
+      <div className="loading-screen" style={{ background: theme.bg, color: theme.text }}>
         <p>Loading Hisaab...</p>
       </div>
     )
