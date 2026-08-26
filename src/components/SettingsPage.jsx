@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { useTheme } from "./ThemeContext";
 
 /**
  * Hisaab — Settings Page
@@ -16,27 +17,8 @@ import { LocalNotifications } from "@capacitor/local-notifications";
  * Only ONE of these three per row — keeps each row predictable.
  */
 
-const ACCENT = "#3DA9FF";
-const BG_PANEL = "#0A0A0A";
-const BORDER = "rgba(61,169,255,0.15)";
-const TEXT_MUTED = "#7A7A7A";
-
 export default function SettingsPage({ session, onLogout }) {
-  // Theme toggle — persisted to localStorage so it survives navigating away
-  // and coming back. Still needs wiring to your actual theme provider once
-  // dark/light theming is built; this just remembers the user's choice.
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("hisaab_dark_mode");
-    return saved === null ? true : saved === "true";
-  });
-
-  const toggleDarkMode = () => {
-    setDarkMode((v) => {
-      const next = !v;
-      localStorage.setItem("hisaab_dark_mode", String(next));
-      return next;
-    });
-  };
+  const { theme, mode, toggleMode } = useTheme();
 
   // 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' | 'checking'
   const [notifPermission, setNotifPermission] = useState("checking");
@@ -74,18 +56,22 @@ export default function SettingsPage({ session, onLogout }) {
     }
   };
 
+  const styles = getStyles(theme);
+
   return (
     <div style={styles.page}>
       <h2 style={styles.pageTitle}>Settings</h2>
 
       {/* ---- Account ---- */}
-      <Section title="Account">
+      <Section title="Account" theme={theme}>
         <SettingsRow
+          theme={theme}
           icon="👤"
           label="Email"
           rightText={session?.user?.email}
         />
         <SettingsRow
+          theme={theme}
           icon="🚪"
           label="Logout"
           onClick={onLogout}
@@ -94,19 +80,21 @@ export default function SettingsPage({ session, onLogout }) {
       </Section>
 
       {/* ---- Appearance ---- */}
-      <Section title="Appearance">
+      <Section title="Appearance" theme={theme}>
         <SettingsRow
+          theme={theme}
           icon="🌗"
           label="Dark Mode"
           toggle
-          checked={darkMode}
-          onToggle={toggleDarkMode}
+          checked={mode === "dark"}
+          onToggle={toggleMode}
         />
       </Section>
 
       {/* ---- Permissions ---- */}
-      <Section title="Permissions">
+      <Section title="Permissions" theme={theme}>
         <SettingsRow
+          theme={theme}
           icon="🔔"
           label="Notifications"
           rightText={
@@ -129,9 +117,9 @@ export default function SettingsPage({ session, onLogout }) {
       </Section>
 
       {/* ---- Help & Sharing ---- */}
-      <Section title="Help">
-        <SettingsRow icon="📖" label="Quick Guide" comingSoon />
-        <SettingsRow icon="🤝" label="Invite Friends" onClick={handleInvite} />
+      <Section title="Help" theme={theme}>
+        <SettingsRow theme={theme} icon="📖" label="Quick Guide" comingSoon />
+        <SettingsRow theme={theme} icon="🤝" label="Invite Friends" onClick={handleInvite} />
       </Section>
 
       <div style={styles.footerNote}>Hisaab · Made in India 🇮🇳</div>
@@ -140,7 +128,8 @@ export default function SettingsPage({ session, onLogout }) {
 }
 
 /* ---------- Section wrapper — groups related rows under a label ---------- */
-function Section({ title, children }) {
+function Section({ title, theme, children }) {
+  const styles = getStyles(theme);
   const rows = Array.isArray(children) ? children : [children];
   return (
     <div style={styles.section}>
@@ -159,7 +148,8 @@ function Section({ title, children }) {
 /* ---------- SettingsRow — ONE reusable row for all three variants ----------
    Pass exactly one of: onClick (action/nav), toggle+checked+onToggle, or
    rightText (read-only display). comingSoon disables the row entirely. */
-function SettingsRow({ icon, label, onClick, toggle, checked, onToggle, rightText, comingSoon, danger, isLast }) {
+function SettingsRow({ theme, icon, label, onClick, toggle, checked, onToggle, rightText, comingSoon, danger, isLast }) {
+  const styles = getStyles(theme);
   const clickable = !comingSoon && (onClick || toggle);
 
   return (
@@ -173,7 +163,7 @@ function SettingsRow({ icon, label, onClick, toggle, checked, onToggle, rightTex
       }}
     >
       <span style={{ fontSize: 18, width: 26 }}>{icon}</span>
-      <span style={{ flex: 1, fontSize: 14.5, color: danger ? "#FF6B6B" : "#EAEAEA" }}>
+      <span style={{ flex: 1, fontSize: 14.5, color: danger ? theme.danger : theme.text }}>
         {label}
       </span>
 
@@ -181,7 +171,7 @@ function SettingsRow({ icon, label, onClick, toggle, checked, onToggle, rightTex
         <div
           style={{
             ...styles.toggleTrack,
-            backgroundColor: checked ? ACCENT : "rgba(255,255,255,0.12)",
+            backgroundColor: checked ? theme.accent : theme.borderSoft,
           }}
         >
           <div
@@ -194,72 +184,74 @@ function SettingsRow({ icon, label, onClick, toggle, checked, onToggle, rightTex
       )}
 
       {!toggle && rightText && (
-        <span style={{ fontSize: 12.5, color: TEXT_MUTED, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span style={{ fontSize: 12.5, color: theme.textMuted, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {rightText}
         </span>
       )}
 
-      {comingSoon && <span style={{ fontSize: 10.5, color: TEXT_MUTED }}>Soon</span>}
+      {comingSoon && <span style={{ fontSize: 10.5, color: theme.textMuted }}>Soon</span>}
 
       {clickable && !toggle && (
-        <span style={{ fontSize: 16, color: TEXT_MUTED, marginLeft: 4 }}>›</span>
+        <span style={{ fontSize: 16, color: theme.textMuted, marginLeft: 4 }}>›</span>
       )}
     </div>
   );
 }
 
-const styles = {
-  page: {
-    padding: "4px 2px 24px",
-  },
-  pageTitle: {
-    fontFamily: "'Georgia', serif",
-    fontSize: 22,
-    fontWeight: 600,
-    color: ACCENT,
-    margin: "4px 0 18px",
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    color: TEXT_MUTED,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    padding: "0 4px 8px",
-  },
-  sectionCard: {
-    background: BG_PANEL,
-    border: `1px solid ${BORDER}`,
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-  row: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "13px 14px",
-    borderBottom: `1px solid ${BORDER}`,
-  },
-  toggleTrack: {
-    width: 38,
-    height: 20,
-    borderRadius: 999,
-    padding: 2,
-    transition: "background-color 0.2s ease",
-  },
-  toggleThumb: {
-    width: 16,
-    height: 16,
-    borderRadius: "50%",
-    backgroundColor: "#fff",
-    transition: "transform 0.2s ease",
-  },
-  footerNote: {
-    color: TEXT_MUTED,
-    fontSize: 11,
-    textAlign: "center",
-    padding: "16px 0 0",
-  },
-};
+function getStyles(theme) {
+  return {
+    page: {
+      padding: "4px 2px 24px",
+    },
+    pageTitle: {
+      fontFamily: "'Georgia', serif",
+      fontSize: 22,
+      fontWeight: 600,
+      color: theme.accent,
+      margin: "4px 0 18px",
+    },
+    section: {
+      marginBottom: 20,
+    },
+    sectionLabel: {
+      fontSize: 11,
+      color: theme.textMuted,
+      textTransform: "uppercase",
+      letterSpacing: "0.05em",
+      padding: "0 4px 8px",
+    },
+    sectionCard: {
+      background: theme.bgElevated,
+      border: `1px solid ${theme.border}`,
+      borderRadius: 14,
+      overflow: "hidden",
+    },
+    row: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "13px 14px",
+      borderBottom: `1px solid ${theme.border}`,
+    },
+    toggleTrack: {
+      width: 38,
+      height: 20,
+      borderRadius: 999,
+      padding: 2,
+      transition: "background-color 0.2s ease",
+    },
+    toggleThumb: {
+      width: 16,
+      height: 16,
+      borderRadius: "50%",
+      backgroundColor: "#fff",
+      transition: "transform 0.2s ease",
+    },
+    footerNote: {
+      color: theme.textMuted,
+      fontSize: 11,
+      textAlign: "center",
+      padding: "16px 0 0",
+    },
+  };
+        }
