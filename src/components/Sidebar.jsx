@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "../ThemeContext";
 
 /**
  * Hisaab — Sidebar / Drawer Navigation (v2 — matched to real app)
@@ -13,11 +14,6 @@ import { useState } from "react";
  *   onExportCSV     -> handleExportCSV function (exports current month's transactions as CSV)
  *   onLogout        -> your existing handleLogout function
  */
-
-const ACCENT = "#3DA9FF";
-const BG_PANEL = "#0A0A0A";
-const BORDER = "rgba(61,169,255,0.15)";
-const TEXT_MUTED = "#7A7A7A";
 
 const ROUTES = [
   { key: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -34,6 +30,8 @@ const COMING_SOON = [
 ];
 
 export default function Sidebar({ session, activeTab, onTabChange, onDownloadReport, onExportCSV, onLogout }) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -93,9 +91,9 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
                 }}
                 style={{
                   ...styles.menuItem,
-                  backgroundColor: isActive ? "rgba(61,169,255,0.08)" : "transparent",
-                  color: isActive ? ACCENT : "#EAEAEA",
-                  borderLeft: isActive ? `3px solid ${ACCENT}` : "3px solid transparent",
+                  backgroundColor: isActive ? theme.accentBg : "transparent",
+                  color: isActive ? theme.accent : theme.text,
+                  borderLeft: isActive ? `3px solid ${theme.accent}` : "3px solid transparent",
                 }}
               >
                 <span style={{ fontSize: 18, width: 24 }}>{item.icon}</span>
@@ -113,7 +111,7 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
             style={styles.menuItem}
           >
             <span style={{ fontSize: 18, width: 24 }}>📄</span>
-            <span style={{ fontSize: 15, color: "#EAEAEA" }}>Download Report</span>
+            <span style={{ fontSize: 15, color: theme.text }}>Download Report</span>
           </button>
 
           {/* Export CSV — separate from PDF report, raw data for Excel/Sheets */}
@@ -125,7 +123,7 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
             style={styles.menuItem}
           >
             <span style={{ fontSize: 18, width: 24 }}>🧾</span>
-            <span style={{ fontSize: 15, color: "#EAEAEA" }}>Export CSV</span>
+            <span style={{ fontSize: 15, color: theme.text }}>Export CSV</span>
           </button>
         </nav>
 
@@ -143,9 +141,9 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
                 }}
                 style={{
                   ...styles.menuItem,
-                  backgroundColor: isActive ? "rgba(61,169,255,0.08)" : "transparent",
-                  color: isActive ? ACCENT : "#EAEAEA",
-                  borderLeft: isActive ? `3px solid ${ACCENT}` : "3px solid transparent",
+                  backgroundColor: isActive ? theme.accentBg : "transparent",
+                  color: isActive ? theme.accent : theme.text,
+                  borderLeft: isActive ? `3px solid ${theme.accent}` : "3px solid transparent",
                 }}
               >
                 <span style={{ fontSize: 18, width: 24 }}>{SETTINGS_ROUTE.icon}</span>
@@ -162,7 +160,7 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
         {COMING_SOON.map((item) => (
           <div key={item.label} style={styles.disabledItem}>
             <span style={{ fontSize: 18, width: 24, opacity: 0.4 }}>{item.icon}</span>
-            <span style={{ fontSize: 14, color: TEXT_MUTED }}>{item.label}</span>
+            <span style={{ fontSize: 14, color: theme.textMuted }}>{item.label}</span>
           </div>
         ))}
 
@@ -173,121 +171,123 @@ export default function Sidebar({ session, activeTab, onTabChange, onDownloadRep
   );
 }
 
-const styles = {
-  hamburgerBtn: {
-    width: 36,
-    height: 36,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 5,
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: 0,
-  },
-  hamburgerLine: {
-    width: 20,
-    height: 2,
-    backgroundColor: "#EAEAEA",
-    borderRadius: 2,
-  },
-  backdrop: {
-    position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    zIndex: 40,
-  },
-  drawer: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: "78%",
-    maxWidth: 300,
-    backgroundColor: BG_PANEL,
-    borderRight: `1px solid ${BORDER}`,
-    zIndex: 50,
-    display: "flex",
-    flexDirection: "column",
-    padding: "20px 12px 16px",
-    transition: "transform 0.28s ease",
-    boxShadow: "4px 0 24px rgba(0,0,0,0.6)",
-    overflowY: "auto",
-  },
-  accountCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "6px 8px",
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: "50%",
-    backgroundColor: "#0D0D0D",
-    border: `1px solid ${ACCENT}`,
-    color: ACCENT,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 16,
-    fontWeight: 600,
-    flexShrink: 0,
-  },
-  accountEmail: {
-    color: "#EAEAEA",
-    fontSize: 12.5,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    marginBottom: 6,
-  },
-  logoutBtn: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "#B8B8B8",
-    fontSize: 11.5,
-    padding: "4px 10px",
-    borderRadius: 14,
-    cursor: "pointer",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: BORDER,
-    margin: "12px 4px",
-  },
-  menuItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    width: "100%",
-    padding: "12px 12px",
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    textAlign: "left",
-    borderRadius: 6,
-    marginBottom: 2,
-  },
-  comingSoonLabel: {
-    fontSize: 11,
-    color: TEXT_MUTED,
-    padding: "4px 12px 6px",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  },
-  disabledItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "10px 12px",
-  },
-  footerNote: {
-    color: TEXT_MUTED,
-    fontSize: 11,
-    textAlign: "center",
-    padding: "8px 0 0",
-  },
-};
+function getStyles(theme) {
+  return {
+    hamburgerBtn: {
+      width: 36,
+      height: 36,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 5,
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      padding: 0,
+    },
+    hamburgerLine: {
+      width: 20,
+      height: 2,
+      backgroundColor: theme.text,
+      borderRadius: 2,
+    },
+    backdrop: {
+      position: "fixed",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      zIndex: 40,
+    },
+    drawer: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: "78%",
+      maxWidth: 300,
+      backgroundColor: theme.bgElevated,
+      borderRight: `1px solid ${theme.border}`,
+      zIndex: 50,
+      display: "flex",
+      flexDirection: "column",
+      padding: "20px 12px 16px",
+      transition: "transform 0.28s ease",
+      boxShadow: "4px 0 24px rgba(0,0,0,0.6)",
+      overflowY: "auto",
+    },
+    accountCard: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      padding: "6px 8px",
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: "50%",
+      backgroundColor: theme.card,
+      border: `1px solid ${theme.accent}`,
+      color: theme.accent,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 16,
+      fontWeight: 600,
+      flexShrink: 0,
+    },
+    accountEmail: {
+      color: theme.text,
+      fontSize: 12.5,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      marginBottom: 6,
+    },
+    logoutBtn: {
+      background: theme.borderSoft,
+      border: `1px solid ${theme.borderSoft}`,
+      color: theme.textSubtle,
+      fontSize: 11.5,
+      padding: "4px 10px",
+      borderRadius: 14,
+      cursor: "pointer",
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.border,
+      margin: "12px 4px",
+    },
+    menuItem: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      width: "100%",
+      padding: "12px 12px",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      textAlign: "left",
+      borderRadius: 6,
+      marginBottom: 2,
+    },
+    comingSoonLabel: {
+      fontSize: 11,
+      color: theme.textMuted,
+      padding: "4px 12px 6px",
+      textTransform: "uppercase",
+      letterSpacing: "0.05em",
+    },
+    disabledItem: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      padding: "10px 12px",
+    },
+    footerNote: {
+      color: theme.textMuted,
+      fontSize: 11,
+      textAlign: "center",
+      padding: "8px 0 0",
+    },
+  };
+}
