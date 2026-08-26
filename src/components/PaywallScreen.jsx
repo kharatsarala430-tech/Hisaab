@@ -1,4 +1,7 @@
+import { useTheme } from '../ThemeContext'
+
 export default function PaywallScreen({ featureName }) {
+  const { theme } = useTheme()
   return (
     <div style={{
       display: 'flex',
@@ -9,14 +12,14 @@ export default function PaywallScreen({ featureName }) {
       textAlign: 'center',
       minHeight: '300px'
     }}>
-      <h2 style={{ marginBottom: '12px' }}>🔒 Premium Feature</h2>
-      <p style={{ color: '#888', marginBottom: '20px' }}>
+      <h2 style={{ marginBottom: '12px', color: theme.text }}>🔒 Premium Feature</h2>
+      <p style={{ color: theme.textMuted, marginBottom: '20px' }}>
         {featureName ? `"${featureName}" is a premium feature.` : 'This is a premium feature.'}
       </p>
       <button style={{
         padding: '12px 24px',
-        background: '#0F766E',
-        color: '#fff',
+        background: theme.accent,
+        color: theme.bg,
         border: 'none',
         borderRadius: '8px',
         fontWeight: 'bold'
