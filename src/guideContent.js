@@ -4,6 +4,10 @@
  * Save as: src/guideContent.js
  *
  * All Quick Guide text lives here in one place, split by language.
+ * Hindi and Marathi are written in proper Devanagari script — not
+ * Roman-letter transliteration ("Hinglish"). They are two distinct
+ * languages with their own wording, not the same sentence reused.
+ *
  * To add a new language later: add a new key (e.g. "gujarati") with
  * the same shape as the ones below — nothing else needs to change.
  */
@@ -36,38 +40,38 @@ export const authGuideSteps = {
   ],
   hindi: [
     {
-      title: "Hisaab mein aapka swagat hai",
-      text: "Hisaab aapki income, expenses, EMI aur savings goals ek hi jagah track karne mein madad karta hai. Chaliye login karte hain.",
+      title: "हिसाब में आपका स्वागत है",
+      text: "हिसाब आपकी आय, खर्च, ईएमआई और बचत के लक्ष्य — सब कुछ एक ही जगह पर ट्रैक करने में मदद करता है। चलिए लॉग इन करते हैं।",
     },
     {
-      title: "Naye user ho? Account banao",
-      text: "Password box ke neeche 'New here? Create an account' pe tap karo. Apna email aur password (kam se kam 6 characters) daalo, phir 'Sign Up' pe tap karo.",
+      title: "नए हैं? खाता बनाएं",
+      text: "पासवर्ड बॉक्स के नीचे 'New here? Create an account' पर टैप करें। अपना ईमेल और पासवर्ड (कम से कम 6 अक्षर) डालें, फिर 'Sign Up' पर टैप करें।",
     },
     {
-      title: "Pehle se account hai?",
-      text: "Apna registered email aur password daalo, phir 'Log In' pe tap karo. Bas — aapka dashboard automatically khul jayega.",
+      title: "पहले से खाता है?",
+      text: "अपना रजिस्टर्ड ईमेल और पासवर्ड डालें, फिर 'Log In' पर टैप करें। बस — आपका डैशबोर्ड अपने आप खुल जाएगा।",
     },
     {
-      title: "Password bhool gaye?",
-      text: "Abhi ke liye, wahi email use karo jisse aapne sign up kiya tha. Agar problem ho to Settings page se support contact karo.",
+      title: "पासवर्ड भूल गए?",
+      text: "फिलहाल, वही ईमेल इस्तेमाल करें जिससे आपने साइन अप किया था। अगर दिक्कत हो तो सेटिंग्स पेज से सहायता से संपर्क करें।",
     },
   ],
   marathi: [
     {
-      title: "Hisaab madhe swagat aahe",
-      text: "Hisaab tumchi income, expenses, EMI ani savings goals ek thikani track karayla madat karto. Chala login karूya.",
+      title: "हिसाब मध्ये आपले स्वागत आहे",
+      text: "हिसाब तुमचे उत्पन्न, खर्च, ईएमआय आणि बचतीची उद्दिष्टे — सर्व काही एकाच ठिकाणी ट्रॅक करण्यास मदत करते. चला लॉग इन करूया.",
     },
     {
-      title: "Nave user aahat? Account banva",
-      text: "Password box chya khali 'New here? Create an account' var tap kara. Tumcha email ani password (kimaan 6 characters) taka, mag 'Sign Up' var tap kara.",
+      title: "नवीन आहात? खाते तयार करा",
+      text: "पासवर्ड बॉक्सच्या खाली 'New here? Create an account' वर टॅप करा. तुमचा ईमेल आणि पासवर्ड (किमान 6 अक्षरे) टाका, मग 'Sign Up' वर टॅप करा.",
     },
     {
-      title: "Aadhipasun account aahe?",
-      text: "Tumcha registered email ani password taka, mag 'Log In' var tap kara. Zale — tumcha dashboard aapoap ughadेल.",
+      title: "आधीच खाते आहे?",
+      text: "तुमचा नोंदणीकृत ईमेल आणि पासवर्ड टाका, मग 'Log In' वर टॅप करा. झाले — तुमचा डॅशबोर्ड आपोआप उघडेल.",
     },
     {
-      title: "Password visarla?",
-      text: "Sadhya, jya emailne sign up kele hote tach email vapra. Adchan asel tar Settings page varun support la sampark kara.",
+      title: "पासवर्ड विसरलात?",
+      text: "सध्या, ज्या ईमेलने साइन अप केले होते तोच ईमेल वापरा. अडचण असल्यास सेटिंग्स पेजवरून सपोर्टशी संपर्क साधा.",
     },
   ],
 };
@@ -81,16 +85,16 @@ export const dashboardTourSteps = {
     { targetId: "tour-bottom-nav", title: "Explore More", text: "Use these tabs to jump to EMI, Budget, Savings and Udhaar tracking." },
   ],
   hindi: [
-    { targetId: "tour-summary", title: "Aapka Summary", text: "Yahan aapko selected month ka Balance, Income aur Expenses ek nazar mein dikhta hai." },
-    { targetId: "tour-add-transaction", title: "Transaction Add Karo", text: "Kabhi bhi kharch ya income add karne ke liye yahan tap karo." },
-    { targetId: "tour-month-selector", title: "Month Badlo", text: "Is dropdown se koi bhi purana month ka data dekh sakte ho." },
-    { targetId: "tour-bottom-nav", title: "Aur Explore Karo", text: "Inn tabs se EMI, Budget, Savings aur Udhaar tracking pe jaa sakte ho." },
+    { targetId: "tour-summary", title: "आपका सारांश", text: "यहां आपको चुने गए महीने का बैलेंस, आय और खर्च एक नज़र में दिखता है।" },
+    { targetId: "tour-add-transaction", title: "ट्रांजैक्शन जोड़ें", text: "कभी भी खर्च या आय जोड़ने के लिए यहां टैप करें।" },
+    { targetId: "tour-month-selector", title: "महीना बदलें", text: "इस ड्रॉपडाउन से किसी भी पुराने महीने का डेटा देख सकते हैं।" },
+    { targetId: "tour-bottom-nav", title: "और भी बहुत कुछ", text: "इन टैब्स से ईएमआई, बजट, बचत और उधार ट्रैकिंग पर जा सकते हैं।" },
   ],
   marathi: [
-    { targetId: "tour-summary", title: "Tumcha Summary", text: "Ithe tumhala selected month cha Balance, Income ani Expenses ek najaret dista." },
-    { targetId: "tour-add-transaction", title: "Transaction Add Kara", text: "Kadhihi kharch kinva income add karnyasathi ithe tap kara." },
-    { targetId: "tour-month-selector", title: "Month Badla", text: "Ya dropdown ne koणताही juna month cha data pahu shakta." },
-    { targetId: "tour-bottom-nav", title: "Ajun Explore Kara", text: "Ya tabs varun EMI, Budget, Savings ani Udhaar tracking var jau shakta." },
+    { targetId: "tour-summary", title: "तुमचा सारांश", text: "इथे तुम्हाला निवडलेल्या महिन्याचे बॅलन्स, उत्पन्न आणि खर्च एका नजरेत दिसतो." },
+    { targetId: "tour-add-transaction", title: "व्यवहार जोडा", text: "कधीही खर्च किंवा उत्पन्न जोडण्यासाठी इथे टॅप करा." },
+    { targetId: "tour-month-selector", title: "महिना बदला", text: "या ड्रॉपडाउनने कोणत्याही जुन्या महिन्याचा डेटा पाहू शकता." },
+    { targetId: "tour-bottom-nav", title: "आणखी एक्सप्लोर करा", text: "या टॅब्सवरून ईएमआय, बजेट, बचत आणि उधार ट्रॅकिंगवर जाऊ शकता." },
   ],
 };
 
