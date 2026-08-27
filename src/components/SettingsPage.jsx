@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { useTheme } from "../ThemeContext";
+import QuickGuideModal from "./QuickGuideModal";
 
 /**
  * Hisaab — Settings Page
@@ -17,11 +18,12 @@ import { useTheme } from "../ThemeContext";
  * Only ONE of these three per row — keeps each row predictable.
  */
 
-export default function SettingsPage({ session, onLogout }) {
+export default function SettingsPage({ session, onLogout, onStartTour }) {
   const { theme, mode, toggleMode } = useTheme();
 
   // 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' | 'checking'
   const [notifPermission, setNotifPermission] = useState("checking");
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     LocalNotifications.checkPermissions()
@@ -118,11 +120,16 @@ export default function SettingsPage({ session, onLogout }) {
 
       {/* ---- Help & Sharing ---- */}
       <Section title="Help" theme={theme}>
-        <SettingsRow theme={theme} icon="📖" label="Quick Guide" comingSoon />
+        <SettingsRow theme={theme} icon="📖" label="Quick Guide" onClick={() => setShowGuide(true)} />
+        {onStartTour && (
+          <SettingsRow theme={theme} icon="🧭" label="Replay Dashboard Tour" onClick={onStartTour} />
+        )}
         <SettingsRow theme={theme} icon="🤝" label="Invite Friends" onClick={handleInvite} />
       </Section>
 
       <div style={styles.footerNote}>Hisaab · Made in India 🇮🇳</div>
+
+      {showGuide && <QuickGuideModal onClose={() => setShowGuide(false)} />}
     </div>
   );
 }
