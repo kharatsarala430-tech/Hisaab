@@ -4,17 +4,22 @@ import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import { requestNotificationPermission } from './lib/notifications'
 import { ThemeProvider, useTheme } from './ThemeContext'
+import { LanguageProvider, useLanguage } from './LanguageContext'
+import LanguagePicker from './components/LanguagePicker'
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppInner />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AppInner />
+      </ThemeProvider>
+    </LanguageProvider>
   )
 }
 
 function AppInner() {
   const { theme } = useTheme()
+  const { hasChosenLanguage } = useLanguage()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -36,6 +41,11 @@ function AppInner() {
   useEffect(() => {
     requestNotificationPermission()
   }, [])
+
+  // First thing a brand-new install sees: pick a language before anything else loads.
+  if (!hasChosenLanguage) {
+    return <LanguagePicker />
+  }
 
   if (loading) {
     return (
