@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { useTheme } from "../ThemeContext";
+import { useLanguage } from "../LanguageContext";
+import { LANGUAGES } from "../guideContent";
 import QuickGuideModal from "./QuickGuideModal";
 
 /**
@@ -20,6 +22,7 @@ import QuickGuideModal from "./QuickGuideModal";
 
 export default function SettingsPage({ session, onLogout, onStartTour }) {
   const { theme, mode, toggleMode } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
 
   // 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' | 'checking'
   const [notifPermission, setNotifPermission] = useState("checking");
@@ -62,46 +65,66 @@ export default function SettingsPage({ session, onLogout, onStartTour }) {
 
   return (
     <div style={styles.page}>
-      <h2 style={styles.pageTitle}>Settings</h2>
+      <h2 style={styles.pageTitle}>{t('settings.title')}</h2>
 
       {/* ---- Account ---- */}
-      <Section title="Account" theme={theme}>
+      <Section title={t('settings.account')} theme={theme}>
         <SettingsRow
           theme={theme}
           icon="👤"
-          label="Email"
+          label={t('settings.email')}
           rightText={session?.user?.email}
         />
         <SettingsRow
           theme={theme}
           icon="🚪"
-          label="Logout"
+          label={t('settings.logout')}
           onClick={onLogout}
           danger
         />
       </Section>
 
       {/* ---- Appearance ---- */}
-      <Section title="Appearance" theme={theme}>
+      <Section title={t('settings.appearance')} theme={theme}>
         <SettingsRow
           theme={theme}
           icon="🌗"
-          label="Dark Mode"
+          label={t('settings.darkMode')}
           toggle
           checked={mode === "dark"}
           onToggle={toggleMode}
         />
       </Section>
 
+      {/* ---- Language ---- */}
+      <Section title={t('settings.language')} theme={theme}>
+        <div style={styles.langRow}>
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => setLanguage(lang.code)}
+              style={{
+                ...styles.langChip,
+                borderColor: language === lang.code ? theme.accent : theme.border,
+                color: language === lang.code ? theme.accent : theme.text,
+                background: language === lang.code ? theme.accentBg : "transparent",
+              }}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+      </Section>
+
       {/* ---- Permissions ---- */}
-      <Section title="Permissions" theme={theme}>
+      <Section title={t('settings.permissions')} theme={theme}>
         <SettingsRow
           theme={theme}
           icon="🔔"
-          label="Notifications"
+          label={t('settings.notifications')}
           rightText={
             notifPermission === "granted"
-              ? "Allowed"
+              ? t('settings.allowed')
               : notifPermission === "denied"
               ? "Blocked — enable in Android Settings"
               : notifPermission === "checking"
@@ -119,15 +142,15 @@ export default function SettingsPage({ session, onLogout, onStartTour }) {
       </Section>
 
       {/* ---- Help & Sharing ---- */}
-      <Section title="Help" theme={theme}>
-        <SettingsRow theme={theme} icon="📖" label="Quick Guide" onClick={() => setShowGuide(true)} />
+      <Section title={t('settings.help')} theme={theme}>
+        <SettingsRow theme={theme} icon="📖" label={t('settings.quickGuide')} onClick={() => setShowGuide(true)} />
         {onStartTour && (
-          <SettingsRow theme={theme} icon="🧭" label="Replay Dashboard Tour" onClick={onStartTour} />
+          <SettingsRow theme={theme} icon="🧭" label={t('settings.replayTour')} onClick={onStartTour} />
         )}
-        <SettingsRow theme={theme} icon="🤝" label="Invite Friends" onClick={handleInvite} />
+        <SettingsRow theme={theme} icon="🤝" label={t('settings.inviteFriends')} onClick={handleInvite} />
       </Section>
 
-      <div style={styles.footerNote}>Hisaab · Made in India 🇮🇳</div>
+      <div style={styles.footerNote}>{t('settings.footer')}</div>
 
       {showGuide && <QuickGuideModal onClose={() => setShowGuide(false)} />}
     </div>
@@ -260,5 +283,21 @@ function getStyles(theme) {
       textAlign: "center",
       padding: "16px 0 0",
     },
+    langRow: {
+      display: "flex",
+      gap: 8,
+      padding: "12px 14px",
+      background: theme.bgElevated,
+      border: `1px solid ${theme.border}`,
+      borderRadius: 14,
+      flexWrap: "wrap",
+    },
+    langChip: {
+      padding: "8px 16px",
+      borderRadius: 999,
+      border: "1px solid",
+      fontSize: 13.5,
+      cursor: "pointer",
+    },
   };
-}
+      }
