@@ -1,8 +1,10 @@
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 export default function TransactionList({ transactions, loading, onTransactionChanged }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
 
   const handleDelete = async (id) => {
     const { error } = await supabase.from('transactions').delete().eq('id', id)
@@ -14,13 +16,13 @@ export default function TransactionList({ transactions, loading, onTransactionCh
   }
 
   if (loading) {
-    return <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>Loading transactions...</p>
+    return <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>{t('transactions.loading')}</p>
   }
 
   if (transactions.length === 0) {
     return (
       <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>
-        No transactions yet. Add your first one above!
+        {t('transactions.empty')}
       </p>
     )
   }
@@ -31,7 +33,7 @@ export default function TransactionList({ transactions, loading, onTransactionCh
         fontSize: 12, fontWeight: 600, color: theme.textMuted, letterSpacing: '0.04em',
         textTransform: 'uppercase', marginBottom: 10,
       }}>
-        Recent Transactions
+        {t('transactions.title')}
       </div>
 
       {transactions.map((tx) => (
