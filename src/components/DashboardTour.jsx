@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../ThemeContext";
-import { dashboardTourSteps, STORAGE_KEYS } from "../guideContent";
+import { dashboardTourSteps, STORAGE_KEYS, LANGUAGES } from "../guideContent";
 import { guideAnimationCSS } from "./QuickGuideModal";
 
 /**
@@ -30,8 +30,17 @@ const TOOLTIP_HEIGHT_ESTIMATE = 190; // rough box height incl. padding, used for
 
 export default function DashboardTour({ onFinish }) {
   const { theme } = useTheme();
-  const language = localStorage.getItem(STORAGE_KEYS.language) || "english";
+  const [language, setLanguageState] = useState(
+    () => localStorage.getItem(STORAGE_KEYS.language) || "english"
+  );
+  const [showLangPicker, setShowLangPicker] = useState(false);
   const steps = dashboardTourSteps[language] || dashboardTourSteps.english;
+
+  const setLanguage = (code) => {
+    localStorage.setItem(STORAGE_KEYS.language, code);
+    setLanguageState(code);
+    setShowLangPicker(false);
+  };
 
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
@@ -76,6 +85,10 @@ export default function DashboardTour({ onFinish }) {
 
   const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
   const margin = 16;
+  // Bottom-nav step needs a bigger gap — the nav sits right at the screen edge,
+  // so a small margin still visually crowds it and makes it feel hidden.
+  const isBottomTarget = step.targetId === "tour-bottom-nav";
+  const bottomSafeMargin = isBottomTarget ? 28 : margin;
 
   let tooltipTop;
   if (!highlightBox) {
@@ -84,18 +97,18 @@ export default function DashboardTour({ onFinish }) {
     const spaceBelow = viewportH - (highlightBox.top + highlightBox.height);
     const spaceAbove = highlightBox.top;
     const fitsBelow = spaceBelow >= TOOLTIP_HEIGHT_ESTIMATE + margin;
-    const fitsAbove = spaceAbove >= TOOLTIP_HEIGHT_ESTIMATE + margin;
+    const fitsAbove = spaceAbove >= TOOLTIP_HEIGHT_ESTIMATE + bottomSafeMargin;
 
     if (fitsBelow) {
       tooltipTop = highlightBox.top + highlightBox.height + 14;
     } else if (fitsAbove) {
-      tooltipTop = highlightBox.top - TOOLTIP_HEIGHT_ESTIMATE - 14;
+      tooltipTop = highlightBox.top - TOOLTIP_HEIGHT_ESTIMATE - (isBottomTarget ? 22 : 14);
     } else {
       // Neither side has full room (short screen / large element) — clamp inside viewport bounds.
       tooltipTop = viewportH - TOOLTIP_HEIGHT_ESTIMATE - margin;
     }
     // Final safety clamp so the box can never render above or below the visible screen.
-    tooltipTop = Math.max(margin, Math.min(tooltipTop, viewportH - TOOLTIP_HEIGHT_ESTIMATE - margin));
+    tooltipTop = Math.max(margin, Math.min(tooltipTop, viewportH - TOOLTIP_HEIGHT_ESTIMATE - bottomSafeMargin));
   }
 
   return (
@@ -126,9 +139,36 @@ export default function DashboardTour({ onFinish }) {
         className="guide-fade-in"
         style={{ ...styles.tooltip(theme), top: tooltipTop }}
       >
-        <div style={styles.progressText(theme)}>
-          {stepIndex + 1} / {steps.length}
+        <div style={styles.topRow}>
+          <div style={styles.progressText(theme)}>
+            {stepIndex + 1} / {steps.length}
+          </div>
+          <button
+            style={styles.langToggle(theme)}
+            onClick={() => setShowLangPicker((v) => !v)}
+          >
+            {LANGUAGES.find((l) => l.code === language)?.label || "English"} ▾
+          </button>
         </div>
+
+        {showLangPicker && (
+          <div style={styles.langPickerRow} className="guide-fade-in">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                style={{
+                  ...styles.langPickerChip(theme),
+                  borderColor: lang.code === language ? theme.accent : (theme.border || "rgba(255,255,255,0.12)"),
+                  color: lang.code === language ? theme.accent : theme.text,
+                }}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <h4 style={styles.title(theme)}>{step.title}</h4>
         <p style={styles.text(theme)}>{step.text}</p>
         <div style={styles.footerRow}>
@@ -161,16 +201,45 @@ const styles = {
     right: 20,
     maxWidth: 400,
     margin: "0 auto",
-    background: theme.bgElevated,
-    border: `1px solid ${theme.border}`,
+    background: theme?.bgElevated || "#1a1c26",
+    border: `1px solid ${theme?.border || "rgba(255,255,255,0.12)"}`,
     borderRadius: 16,
     padding: "16px 18px",
     boxSizing: "border-box",
+    boxShadow: "0 8px 28px rgba(0,0,0,0.45)",
   }),
   progressText: (theme) => ({
     fontSize: 11,
     color: theme.textMuted,
-    marginBottom: 6,
+  }),
+  topRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  langToggle: (theme) => ({
+    background: "transparent",
+    border: `1px solid ${theme?.border || "rgba(255,255,255,0.15)"}`,
+    borderRadius: 999,
+    color: theme?.textMuted || "#999",
+    fontSize: 11,
+    padding: "3px 10px",
+    cursor: "pointer",
+  }),
+  langPickerRow: {
+    display: "flex",
+    gap: 8,
+    marginBottom: 12,
+    flexWrap: "wrap",
+  },
+  langPickerChip: (theme) => ({
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid",
+    background: theme?.card || "transparent",
+    fontSize: 12.5,
+    cursor: "pointer",
   }),
   title: (theme) => ({
     fontFamily: "'Georgia', serif",
