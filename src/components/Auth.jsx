@@ -81,20 +81,22 @@ export default function Auth() {
           position: 'fixed',
           bottom: 24,
           right: 20,
-          width: 52,
-          height: 52,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 54,
+          height: 54,
           borderRadius: '50%',
-          border: 'none',
-          background: '#5b6ee8',
-          color: '#fff',
-          fontSize: 20,
-          fontWeight: 600,
-          boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          border: '1px solid rgba(255,255,255,0.14)',
+          background: 'rgba(30, 32, 46, 0.92)',
+          fontSize: 24,
+          lineHeight: 1,
+          boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
           cursor: 'pointer',
           zIndex: 900,
         }}
       >
-        ?
+        📖
       </button>
 
       {showGuide && <QuickGuideModal onClose={() => setShowGuide(false)} />}
