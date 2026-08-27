@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import QuickGuideModal from './QuickGuideModal'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -7,6 +8,7 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [showGuide, setShowGuide] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -70,6 +72,32 @@ export default function Auth() {
           {isSignUp ? 'Already have an account? Log in' : "New here? Create an account"}
         </button>
       </form>
+
+      {/* Floating Quick Guide button */}
+      <button
+        onClick={() => setShowGuide(true)}
+        aria-label="Quick Guide"
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 20,
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          border: 'none',
+          background: '#5b6ee8',
+          color: '#fff',
+          fontSize: 20,
+          fontWeight: 600,
+          boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          zIndex: 900,
+        }}
+      >
+        ?
+      </button>
+
+      {showGuide && <QuickGuideModal onClose={() => setShowGuide(false)} />}
     </div>
   )
 }
