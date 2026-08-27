@@ -16,6 +16,8 @@ import { useTheme } from '../ThemeContext'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { getWeeklyNudge } from '../utils/spendingNudges'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
+import DashboardTour from './DashboardTour'
+import { STORAGE_KEYS } from '../guideContent'
 
 export default function Dashboard({ session }) {
   const { theme } = useTheme()
@@ -28,6 +30,10 @@ export default function Dashboard({ session }) {
   // Tracks whether the initial emis/savingsGoals fetch has finished, so the
   // report button can't fire before that data is actually in state.
   const [initialDataLoaded, setInitialDataLoaded] = useState(false)
+  // Auto-shows the spotlight tour on a user's very first visit to the dashboard.
+  const [showTour, setShowTour] = useState(
+    () => localStorage.getItem(STORAGE_KEYS.tourSeen) !== 'true'
+  )
 
   // Month selector — defaults to the current month, e.g. "2026-08"
   const currentMonthKey = new Date().toISOString().slice(0, 7)
@@ -205,6 +211,7 @@ export default function Dashboard({ session }) {
             EMI and Savings tabs are unaffected since those aren't month-based. */}
         {activeTab === 'dashboard' && (
           <select
+            id="tour-month-selector"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
             style={{
@@ -233,11 +240,15 @@ export default function Dashboard({ session }) {
                 💡 {weeklyNudge.text}
               </div>
             )}
-            <Summary transactions={filteredTransactions} />
-            <AddTransaction
-              userId={session.user.id}
-              onTransactionAdded={fetchTransactions}
-            />
+            <div id="tour-summary">
+              <Summary transactions={filteredTransactions} />
+            </div>
+            <div id="tour-add-transaction">
+              <AddTransaction
+                userId={session.user.id}
+                onTransactionAdded={fetchTransactions}
+              />
+            </div>
             <TransactionList
               transactions={filteredTransactions}
               loading={loading}
@@ -255,12 +266,25 @@ export default function Dashboard({ session }) {
         {activeTab === 'udhaar' && <UdhaarTracker userId={session.user.id} />}
 
         {activeTab === 'settings' && (
-          <SettingsPage session={session} onLogout={handleLogout} />
+          <SettingsPage
+            session={session}
+            onLogout={handleLogout}
+            onStartTour={() => {
+              setActiveTab('dashboard')
+              setShowTour(true)
+            }}
+          />
         )}
         </ErrorBoundary>
       </div>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <div id="tour-bottom-nav">
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+
+      {showTour && activeTab === 'dashboard' && (
+        <DashboardTour onFinish={() => setShowTour(false)} />
+      )}
     </div>
   )
-                  }
+        }
