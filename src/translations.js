@@ -46,6 +46,20 @@ export const translations = {
       expenses: "Expenses",
       spendingByCategory: "Spending by Category",
     },
+    transactions: {
+      title: "Recent Transactions",
+      loading: "Loading transactions...",
+      empty: "No transactions yet. Add your first one above!",
+    },
+    addTransaction: {
+      expense: "Expense",
+      income: "Income",
+      amountPlaceholder: "Amount (₹)",
+      notePlaceholder: "Note (optional)",
+      repeatMonthly: "🔁 Repeat every month",
+      adding: "Adding...",
+      submit: "Add Transaction",
+    },
     settings: {
       title: "Settings",
       account: "Account",
@@ -99,6 +113,20 @@ export const translations = {
       expenses: "खर्च",
       spendingByCategory: "श्रेणी के अनुसार खर्च",
     },
+    transactions: {
+      title: "हाल के लेन-देन",
+      loading: "लेन-देन लोड हो रहे हैं...",
+      empty: "अभी तक कोई लेन-देन नहीं। ऊपर अपना पहला लेन-देन जोड़ें!",
+    },
+    addTransaction: {
+      expense: "खर्च",
+      income: "आय",
+      amountPlaceholder: "राशि (₹)",
+      notePlaceholder: "नोट (वैकल्पिक)",
+      repeatMonthly: "🔁 हर महीने दोहराएं",
+      adding: "जोड़ा जा रहा है...",
+      submit: "लेन-देन जोड़ें",
+    },
     settings: {
       title: "सेटिंग्स",
       account: "खाता",
@@ -151,6 +179,20 @@ export const translations = {
       income: "उत्पन्न",
       expenses: "खर्च",
       spendingByCategory: "श्रेणीनुसार खर्च",
+    },
+    transactions: {
+      title: "अलीकडील व्यवहार",
+      loading: "व्यवहार लोड होत आहेत...",
+      empty: "अजून कोणतेही व्यवहार नाहीत. वरती तुमचा पहिला व्यवहार जोडा!",
+    },
+    addTransaction: {
+      expense: "खर्च",
+      income: "उत्पन्न",
+      amountPlaceholder: "रक्कम (₹)",
+      notePlaceholder: "टीप (ऐच्छिक)",
+      repeatMonthly: "🔁 दर महिन्याला पुन्हा करा",
+      adding: "जोडत आहे...",
+      submit: "व्यवहार जोडा",
     },
     settings: {
       title: "सेटिंग्ज",
