@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../ThemeContext";
 import { dashboardTourSteps, STORAGE_KEYS } from "../guideContent";
+import { guideAnimationCSS } from "./QuickGuideModal";
 
 /**
  * Hisaab — Dashboard Tour (spotlight overlay)
@@ -13,9 +14,19 @@ import { dashboardTourSteps, STORAGE_KEYS } from "../guideContent";
  * How it finds elements: each step has a targetId matching an `id`
  * attribute placed on the real Dashboard element (e.g. id="tour-summary").
  * getBoundingClientRect() gives its screen position, and we draw a
- * "hole" around it using box-shadow instead of clip-path — much simpler
- * and works even if the element is partially off-screen.
+ * "hole" around it using box-shadow instead of clip-path.
+ *
+ * Tooltip positioning fix: the previous version always tried to place
+ * the tooltip 14px below the highlighted element. For elements near
+ * the top of the screen with little room below (e.g. the month
+ * dropdown), the tooltip's fixed height pushed it past the bottom of
+ * the viewport and it became invisible. This version clamps the
+ * tooltip's top position to always stay within
+ * [16px, viewport height - estimated tooltip height - 16px], flipping
+ * above the target only when there's truly more room there.
  */
+
+const TOOLTIP_HEIGHT_ESTIMATE = 190; // rough box height incl. padding, used for clamping only
 
 export default function DashboardTour({ onFinish }) {
   const { theme } = useTheme();
@@ -29,14 +40,13 @@ export default function DashboardTour({ onFinish }) {
   useEffect(() => {
     const el = document.getElementById(step.targetId);
     if (el) {
-      // Small delay lets layout settle (e.g. right after a tab switch) before measuring.
       const raf = requestAnimationFrame(() => {
-        setRect(el.getBoundingClientRect());
         el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Re-measure after the scroll settles so the highlight box matches the final position.
+        setTimeout(() => setRect(el.getBoundingClientRect()), 260);
       });
       return () => cancelAnimationFrame(raf);
     } else {
-      // Target not found on screen (e.g. user is on a different tab) — skip this step.
       setRect(null);
     }
   }, [stepIndex, step.targetId]);
@@ -64,17 +74,37 @@ export default function DashboardTour({ onFinish }) {
       }
     : null;
 
-  // Tooltip appears below the highlighted element, or above it if there's no room below.
-  const tooltipTop = highlightBox
-    ? highlightBox.top + highlightBox.height + 14 > window.innerHeight - 160
-      ? Math.max(20, highlightBox.top - 150)
-      : highlightBox.top + highlightBox.height + 14
-    : window.innerHeight / 2 - 60;
+  const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
+  const margin = 16;
+
+  let tooltipTop;
+  if (!highlightBox) {
+    tooltipTop = viewportH / 2 - TOOLTIP_HEIGHT_ESTIMATE / 2;
+  } else {
+    const spaceBelow = viewportH - (highlightBox.top + highlightBox.height);
+    const spaceAbove = highlightBox.top;
+    const fitsBelow = spaceBelow >= TOOLTIP_HEIGHT_ESTIMATE + margin;
+    const fitsAbove = spaceAbove >= TOOLTIP_HEIGHT_ESTIMATE + margin;
+
+    if (fitsBelow) {
+      tooltipTop = highlightBox.top + highlightBox.height + 14;
+    } else if (fitsAbove) {
+      tooltipTop = highlightBox.top - TOOLTIP_HEIGHT_ESTIMATE - 14;
+    } else {
+      // Neither side has full room (short screen / large element) — clamp inside viewport bounds.
+      tooltipTop = viewportH - TOOLTIP_HEIGHT_ESTIMATE - margin;
+    }
+    // Final safety clamp so the box can never render above or below the visible screen.
+    tooltipTop = Math.max(margin, Math.min(tooltipTop, viewportH - TOOLTIP_HEIGHT_ESTIMATE - margin));
+  }
 
   return (
     <div style={styles.overlay}>
+      <style>{guideAnimationCSS}</style>
+
       {highlightBox && (
         <div
+          className="guide-fade-in"
           style={{
             position: "fixed",
             top: highlightBox.top,
@@ -85,13 +115,17 @@ export default function DashboardTour({ onFinish }) {
             boxShadow: "0 0 0 9999px rgba(0,0,0,0.72)",
             border: `2px solid ${theme.accent}`,
             pointerEvents: "none",
-            transition: "all 0.25s ease",
+            transition: "top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease",
           }}
         />
       )}
       {!highlightBox && <div style={styles.fullDim} />}
 
-      <div style={{ ...styles.tooltip(theme), top: tooltipTop }}>
+      <div
+        key={stepIndex}
+        className="guide-fade-in"
+        style={{ ...styles.tooltip(theme), top: tooltipTop }}
+      >
         <div style={styles.progressText(theme)}>
           {stepIndex + 1} / {steps.length}
         </div>
@@ -132,7 +166,6 @@ const styles = {
     borderRadius: 16,
     padding: "16px 18px",
     boxSizing: "border-box",
-    transition: "top 0.25s ease",
   }),
   progressText: (theme) => ({
     fontSize: 11,
