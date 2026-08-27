@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "../ThemeContext";
 import { LANGUAGES, authGuideSteps, STORAGE_KEYS } from "../guideContent";
 
@@ -12,6 +12,13 @@ import { LANGUAGES, authGuideSteps, STORAGE_KEYS } from "../guideContent";
  *
  * Flow: if a language is already saved in localStorage, skip straight to
  * the step wizard. Otherwise show language chips first.
+ *
+ * Animation: the sheet fades + slides up once on mount, and the inner
+ * content re-plays a shorter fade+slide each time the step changes
+ * (keyed by `stepIndex` so React remounts it and the CSS animation
+ * restarts). All animation lives in the injected <style> tag below —
+ * one definition, reused everywhere, so no per-usage animation code
+ * needs to be added later.
  */
 
 export default function QuickGuideModal({ onClose }) {
@@ -20,10 +27,16 @@ export default function QuickGuideModal({ onClose }) {
     () => localStorage.getItem(STORAGE_KEYS.language) || null
   );
   const [stepIndex, setStepIndex] = useState(0);
+  const [closing, setClosing] = useState(false);
 
   const steps = language ? authGuideSteps[language] : [];
   const step = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
+
+  const requestClose = () => {
+    setClosing(true);
+    setTimeout(onClose, 180); // matches guide-sheet-out duration below
+  };
 
   const chooseLanguage = (code) => {
     localStorage.setItem(STORAGE_KEYS.language, code);
@@ -33,7 +46,7 @@ export default function QuickGuideModal({ onClose }) {
 
   const handleNext = () => {
     if (isLastStep) {
-      onClose();
+      requestClose();
     } else {
       setStepIndex((i) => i + 1);
     }
@@ -42,16 +55,21 @@ export default function QuickGuideModal({ onClose }) {
   const handleBack = () => setStepIndex((i) => Math.max(0, i - 1));
 
   return (
-    <div style={styles.backdrop(theme)} onClick={onClose}>
-      <div style={styles.sheet(theme)} onClick={(e) => e.stopPropagation()}>
-        <button style={styles.closeBtn(theme)} onClick={onClose} aria-label="Close">
+    <div style={styles.backdrop} onClick={requestClose}>
+      <style>{guideAnimationCSS}</style>
+      <div
+        style={styles.sheet(theme)}
+        className={closing ? "guide-sheet-out" : "guide-sheet-in"}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button style={styles.closeBtn(theme)} onClick={requestClose} aria-label="Close">
           ✕
         </button>
 
         {!language ? (
-          <>
+          <div key="lang-select" className="guide-fade-in">
             <h3 style={styles.heading(theme)}>Choose your language</h3>
-            <p style={styles.subtext(theme)}>Apni bhasha chuno / तुमची भाषा निवडा</p>
+            <p style={styles.subtext(theme)}>अपनी भाषा चुनें / तुमची भाषा निवडा</p>
             <div style={styles.langRow}>
               {LANGUAGES.map((lang) => (
                 <button
@@ -63,9 +81,9 @@ export default function QuickGuideModal({ onClose }) {
                 </button>
               ))}
             </div>
-          </>
+          </div>
         ) : (
-          <>
+          <div key={stepIndex} className="guide-fade-in">
             <div style={styles.progressRow}>
               {steps.map((_, i) => (
                 <div
@@ -104,15 +122,35 @@ export default function QuickGuideModal({ onClose }) {
                 {isLastStep ? "Got it" : "Next"}
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
+/* One shared animation definition — reused by QuickGuideModal and DashboardTour
+   so no additional animation work is needed when new guide screens are added. */
+export const guideAnimationCSS = `
+@keyframes guideSheetIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes guideSheetOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(24px); }
+}
+@keyframes guideFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.guide-sheet-in { animation: guideSheetIn 0.22s ease-out; }
+.guide-sheet-out { animation: guideSheetOut 0.18s ease-in forwards; }
+.guide-fade-in { animation: guideFadeIn 0.2s ease-out; }
+`;
+
 const styles = {
-  backdrop: (theme) => ({
+  backdrop: {
     position: "fixed",
     inset: 0,
     background: "rgba(0,0,0,0.55)",
@@ -120,7 +158,7 @@ const styles = {
     alignItems: "flex-end",
     justifyContent: "center",
     zIndex: 1000,
-  }),
+  },
   sheet: (theme) => ({
     width: "100%",
     maxWidth: 480,
