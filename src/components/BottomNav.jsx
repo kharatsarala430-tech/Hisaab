@@ -1,12 +1,14 @@
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 export default function BottomNav({ activeTab, onTabChange }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-    { id: 'emi', label: 'EMI', icon: '💳' },
-    { id: 'budget', label: '50/30/20', icon: '📊' },
-    { id: 'savings', label: 'Savings', icon: '🎯' },
+    { id: 'dashboard', label: t('nav.dashboard'), icon: '🏠' },
+    { id: 'emi', label: t('nav.emi'), icon: '💳' },
+    { id: 'budget', label: t('nav.budget'), icon: '📊' },
+    { id: 'savings', label: t('nav.savings'), icon: '🎯' },
   ]
 
   return (
