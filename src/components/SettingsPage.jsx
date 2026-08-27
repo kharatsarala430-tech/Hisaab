@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { useTheme } from "./ThemeContext";
+import { useTheme } from "../ThemeContext";
 
 /**
  * Hisaab — Settings Page
@@ -254,4 +254,4 @@ function getStyles(theme) {
       padding: "16px 0 0",
     },
   };
-        }
+}
