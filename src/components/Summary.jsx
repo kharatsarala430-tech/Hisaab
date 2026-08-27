@@ -1,8 +1,10 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 export default function Summary({ transactions }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
 
   // Category colors now come from theme.chart (7-color rotating palette) so
   // they stay readable in both dark and light mode. Same category always
@@ -40,7 +42,7 @@ export default function Summary({ transactions }) {
           background: theme.card, borderRadius: 14, padding: '14px 8px', textAlign: 'center',
           border: `1px solid ${theme.border}`, minWidth: 0,
         }}>
-          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>Balance</div>
+          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>{t('dashboard.balance')}</div>
           <div style={{
             fontSize: 'clamp(12px, 3.6vw, 16px)', fontWeight: 700, color: theme.accent,
             fontVariantNumeric: 'tabular-nums', wordBreak: 'break-all', lineHeight: 1.2,
@@ -52,7 +54,7 @@ export default function Summary({ transactions }) {
           background: theme.card, borderRadius: 14, padding: '14px 8px', textAlign: 'center',
           border: `1px solid ${theme.borderSoft}`, minWidth: 0,
         }}>
-          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>Income</div>
+          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>{t('dashboard.income')}</div>
           <div style={{
             fontSize: 'clamp(12px, 3.6vw, 16px)', fontWeight: 700, color: theme.success,
             fontVariantNumeric: 'tabular-nums', wordBreak: 'break-all', lineHeight: 1.2,
@@ -64,7 +66,7 @@ export default function Summary({ transactions }) {
           background: theme.card, borderRadius: 14, padding: '14px 8px', textAlign: 'center',
           border: `1px solid ${theme.borderSoft}`, minWidth: 0,
         }}>
-          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>Expenses</div>
+          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>{t('dashboard.expenses')}</div>
           <div style={{
             fontSize: 'clamp(12px, 3.6vw, 16px)', fontWeight: 700, color: theme.danger,
             fontVariantNumeric: 'tabular-nums', wordBreak: 'break-all', lineHeight: 1.2,
@@ -85,7 +87,7 @@ export default function Summary({ transactions }) {
             fontSize: 12, fontWeight: 600, color: theme.textMuted, letterSpacing: '0.04em',
             textTransform: 'uppercase', marginBottom: 12,
           }}>
-            Spending by Category
+            {t('dashboard.spendingByCategory')}
           </div>
 
           <div style={{ width: '100%', height: 200 }}>
@@ -148,4 +150,4 @@ function hashString(str) {
     hash |= 0
   }
   return hash
-                }
+                              }
