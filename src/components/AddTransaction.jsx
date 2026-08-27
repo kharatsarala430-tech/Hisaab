@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../lib/categories'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 const CATEGORIES = {
   income: INCOME_CATEGORIES,
@@ -10,6 +11,7 @@ const CATEGORIES = {
 
 export default function AddTransaction({ userId, onTransactionAdded }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const [type, setType] = useState('expense')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState(CATEGORIES.expense[0])
@@ -83,7 +85,7 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
             color: type === 'expense' ? theme.dangerBg : theme.textSubtle,
           }}
         >
-          Expense
+          {t('addTransaction.expense')}
         </button>
         <button
           type="button"
@@ -95,13 +97,13 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
             color: type === 'income' ? theme.successBg : theme.textSubtle,
           }}
         >
-          Income
+          {t('addTransaction.income')}
         </button>
       </div>
 
       <input
         type="number"
-        placeholder="Amount (₹)"
+        placeholder={t('addTransaction.amountPlaceholder')}
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         required
@@ -134,12 +136,12 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
           onChange={(e) => setIsRecurring(e.target.checked)}
           style={{ width: 18, height: 18, accentColor: type === 'income' ? theme.success : theme.danger }}
         />
-        🔁 Repeat every month
+        {t('addTransaction.repeatMonthly')}
       </label>
 
       <input
         type="text"
-        placeholder="Note (optional)"
+        placeholder={t('addTransaction.notePlaceholder')}
         value={note}
         onChange={(e) => setNote(e.target.value)}
         style={{ ...inputStyle, marginBottom: 16 }}
@@ -151,8 +153,8 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
         boxShadow: saving ? 'none' : `0 0 24px ${theme.accentBg}`,
         opacity: saving ? 0.6 : 1,
       }}>
-        {saving ? 'Adding...' : 'Add Transaction'}
+        {saving ? t('addTransaction.adding') : t('addTransaction.submit')}
       </button>
     </form>
   )
-      }
+}
