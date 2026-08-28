@@ -51,6 +51,13 @@ export const translations = {
       loading: "Loading transactions...",
       empty: "No transactions yet. Add your first one above!",
     },
+    offline: {
+      offlineBanner: "📴 You're offline — changes will sync automatically",
+      pendingSync: (n) => `${n} change${n === 1 ? '' : 's'} waiting to sync`,
+      syncing: "Syncing...",
+      syncedUp: "All changes synced ✓",
+      pendingTag: "Pending sync",
+    },
     addTransaction: {
       expense: "Expense",
       income: "Income",
@@ -232,6 +239,13 @@ export const translations = {
       title: "हाल के लेन-देन",
       loading: "लेन-देन लोड हो रहे हैं...",
       empty: "अभी तक कोई लेन-देन नहीं। ऊपर अपना पहला लेन-देन जोड़ें!",
+    },
+    offline: {
+      offlineBanner: "📴 आप ऑफ़लाइन हैं — बदलाव अपने आप सिंक हो जाएंगे",
+      pendingSync: (n) => `${n} बदलाव सिंक होने बाकी हैं`,
+      syncing: "सिंक हो रहा है...",
+      syncedUp: "सभी बदलाव सिंक हो गए ✓",
+      pendingTag: "सिंक बाकी है",
     },
     addTransaction: {
       expense: "खर्च",
@@ -415,6 +429,13 @@ export const translations = {
       loading: "व्यवहार लोड होत आहेत...",
       empty: "अजून कोणतेही व्यवहार नाहीत. वरती तुमचा पहिला व्यवहार जोडा!",
     },
+    offline: {
+      offlineBanner: "📴 तुम्ही ऑफलाइन आहात — बदल आपोआप सिंक होतील",
+      pendingSync: (n) => `${n} बदल सिंक व्हायचे बाकी आहेत`,
+      syncing: "सिंक होत आहे...",
+      syncedUp: "सर्व बदल सिंक झाले ✓",
+      pendingTag: "सिंक बाकी",
+    },
     addTransaction: {
       expense: "खर्च",
       income: "उत्पन्न",
@@ -566,4 +587,3 @@ export const translations = {
 };
 
 export const APP_LANG_STORAGE_KEY = "hisaab_app_lang";
-      
