@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 export default function SavingsGoals({ userId }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const inputStyle = {
     width: '100%',
     padding: '13px 14px',
@@ -65,7 +67,7 @@ export default function SavingsGoals({ userId }) {
   }
 
   const handleDeposit = async (goal) => {
-    const amountStr = window.prompt(`How much do you want to add to "${goal.goal_name}"?`)
+    const amountStr = window.prompt(t('savings.depositPrompt', goal.goal_name))
     if (!amountStr) return
     const amount = Number(amountStr)
     if (!amount || amount <= 0) return
@@ -94,17 +96,17 @@ export default function SavingsGoals({ userId }) {
         <span style={{
           fontSize: 11, background: `${theme.info}1F`, padding: '4px 10px',
           borderRadius: 20, color: theme.cyanSoft,
-        }}>Future Milestones</span>
-        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '10px 0 4px', color: theme.textOnAccent }}>Savings & Wealth Goals</h2>
+        }}>{t('savings.badge')}</span>
+        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '10px 0 4px', color: theme.textOnAccent }}>{t('savings.heroTitle')}</h2>
         <p style={{ fontSize: 12.5, color: theme.textSubtle, marginBottom: 16 }}>
-          Build emergency funds, save for trips, and big buys.
+          {t('savings.heroDesc')}
         </p>
         <button onClick={() => setShowForm(!showForm)} style={{
           width: '100%', padding: 12, borderRadius: 12, border: 'none',
           background: theme.info, color: theme.tealBg, fontWeight: 700, fontSize: 13.5,
           boxShadow: `0 0 20px ${theme.info}66`,
         }}>
-          + Create Goal
+          {t('savings.createGoal')}
         </button>
       </div>
 
@@ -114,25 +116,25 @@ export default function SavingsGoals({ userId }) {
           background: theme.card, borderRadius: 16, padding: 18, marginBottom: 18,
           border: `1px solid ${theme.info}33`,
         }}>
-          <input placeholder="Goal Name (e.g. Emergency Fund)" value={goalName} onChange={(e) => setGoalName(e.target.value)} required style={inputStyle} />
-          <input type="number" placeholder="Target Amount (₹)" value={targetAmount} onChange={(e) => setTargetAmount(e.target.value)} required min="0" style={inputStyle} />
+          <input placeholder={t('savings.goalNamePlaceholder')} value={goalName} onChange={(e) => setGoalName(e.target.value)} required style={inputStyle} />
+          <input type="number" placeholder={t('savings.targetAmountPlaceholder')} value={targetAmount} onChange={(e) => setTargetAmount(e.target.value)} required min="0" style={inputStyle} />
           <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} style={{ ...inputStyle, marginBottom: 16 }} />
           <button type="submit" disabled={saving} style={{
             width: '100%', padding: '14px', borderRadius: 14, border: 'none',
             background: theme.info, color: theme.tealBg, fontWeight: 700, fontSize: 14.5,
             opacity: saving ? 0.6 : 1,
           }}>
-            {saving ? 'Creating...' : 'Create Goal'}
+            {saving ? t('savings.creating') : t('savings.createGoal')}
           </button>
         </form>
       )}
 
       {/* Goals list */}
       {loading ? (
-        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>Loading goals...</p>
+        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>{t('savings.loading')}</p>
       ) : goals.length === 0 ? (
         <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>
-          No savings goals yet. Create your first one above!
+          {t('savings.empty')}
         </p>
       ) : (
         goals.map((goal) => {
@@ -146,7 +148,7 @@ export default function SavingsGoals({ userId }) {
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 600, margin: 0, color: theme.text }}>{goal.goal_name}</h3>
                   {goal.target_date && (
-                    <p style={{ fontSize: 12, color: theme.textMuted, margin: '3px 0 0' }}>Target Date: {goal.target_date}</p>
+                    <p style={{ fontSize: 12, color: theme.textMuted, margin: '3px 0 0' }}>{t('savings.targetDate')}: {goal.target_date}</p>
                   )}
                 </div>
                 <button
@@ -161,7 +163,7 @@ export default function SavingsGoals({ userId }) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                <span style={{ color: theme.textSubtle }}>Saved Progress</span>
+                <span style={{ color: theme.textSubtle }}>{t('savings.savedProgress')}</span>
                 <span style={{ color: theme.info, fontWeight: 600 }}>{pct}%</span>
               </div>
               <div style={{ height: 8, background: theme.borderSoft, borderRadius: 4, marginBottom: 12, overflow: 'hidden' }}>
@@ -171,14 +173,14 @@ export default function SavingsGoals({ userId }) {
                 }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: theme.textSubtle, marginBottom: 16, fontVariantNumeric: 'tabular-nums' }}>
-                <span>Current: ₹{Number(goal.current_saved).toLocaleString()}</span>
-                <span>Target: ₹{Number(goal.target_amount).toLocaleString()}</span>
+                <span>{t('savings.current')}: ₹{Number(goal.current_saved).toLocaleString()}</span>
+                <span>{t('savings.target')}: ₹{Number(goal.target_amount).toLocaleString()}</span>
               </div>
               <button onClick={() => handleDeposit(goal)} style={{
                 width: '100%', padding: 11, borderRadius: 12, background: 'transparent',
                 border: `1px solid ${theme.info}`, color: theme.info, fontSize: 13, fontWeight: 600,
               }}>
-                + Add Savings Deposit
+                {t('savings.addDeposit')}
               </button>
             </div>
           )
@@ -186,4 +188,4 @@ export default function SavingsGoals({ userId }) {
       )}
     </div>
   )
-            }
+          }
