@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { scheduleUdhaarReminders, cancelUdhaarReminders } from '../utils/udhaarNotifications'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 /**
  * Hisaab — Udhaar / Khata Tracker
@@ -15,6 +16,7 @@ import { useTheme } from '../ThemeContext'
 
 export default function UdhaarTracker({ userId }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const inputStyle = {
     width: '100%', padding: '11px 12px', marginBottom: 10,
     background: theme.bg, border: `1px solid ${theme.borderSoft}`,
@@ -132,7 +134,7 @@ export default function UdhaarTracker({ userId }) {
   }
 
   if (loading) {
-    return <p style={{ color: theme.textMuted, fontSize: 13, padding: '20px 0' }}>Loading...</p>
+    return <p style={{ color: theme.textMuted, fontSize: 13, padding: '20px 0' }}>{t('udhaar.loading')}</p>
   }
 
   return (
@@ -146,7 +148,7 @@ export default function UdhaarTracker({ userId }) {
           border: `1px solid ${theme.accent}`, fontSize: 14, fontWeight: 600,
         }}
       >
-        {showForm ? 'Cancel' : '+ Naya Udhaar Entry'}
+        {showForm ? t('udhaar.cancel') : t('udhaar.addEntry')}
       </button>
 
       {showForm && (
@@ -155,12 +157,12 @@ export default function UdhaarTracker({ userId }) {
           borderRadius: 12, padding: 14, marginBottom: 16,
         }}>
           <input
-            type="text" placeholder="Naam (e.g. Ravi)" value={personName}
+            type="text" placeholder={t('udhaar.namePlaceholder')} value={personName}
             onChange={(e) => setPersonName(e.target.value)} required
             style={inputStyle}
           />
           <input
-            type="number" placeholder="Amount (₹)" value={amount}
+            type="number" placeholder={t('udhaar.amountPlaceholder')} value={amount}
             onChange={(e) => setAmount(e.target.value)} required min="1"
             style={inputStyle}
           />
@@ -172,7 +174,7 @@ export default function UdhaarTracker({ userId }) {
               color: type === 'lent' ? theme.bg : theme.textSubtle,
               border: `1px solid ${theme.borderSoft}`,
             }}>
-              Maine Diya
+              {t('udhaar.lent')}
             </button>
             <button type="button" onClick={() => setType('borrowed')} style={{
               flex: 1, padding: 10, borderRadius: 8, fontSize: 13,
@@ -180,24 +182,24 @@ export default function UdhaarTracker({ userId }) {
               color: type === 'borrowed' ? theme.bg : theme.textSubtle,
               border: `1px solid ${theme.borderSoft}`,
             }}>
-              Maine Liya
+              {t('udhaar.borrowed')}
             </button>
           </div>
 
           <input
-            type="text" placeholder="Note (optional)" value={note}
+            type="text" placeholder={t('udhaar.notePlaceholder')} value={note}
             onChange={(e) => setNote(e.target.value)}
             style={inputStyle}
           />
 
           <input
-            type="text" placeholder="Kis liye? (e.g. Medical emergency)" value={reason}
+            type="text" placeholder={t('udhaar.reasonPlaceholder')} value={reason}
             onChange={(e) => setReason(e.target.value)}
             style={inputStyle}
           />
 
           <label style={{ fontSize: 12, color: theme.textMuted, display: 'block', marginBottom: 4 }}>
-            Kab tak lautana/lena hai? (optional — reminder milega)
+            {t('udhaar.returnDateLabel')}
           </label>
           <input
             type="date" value={expectedReturnDate}
@@ -211,14 +213,14 @@ export default function UdhaarTracker({ userId }) {
             background: theme.accent, color: theme.bg, fontSize: 14, fontWeight: 600,
             border: 'none', opacity: saving ? 0.6 : 1,
           }}>
-            {saving ? 'Saving...' : 'Save Entry'}
+            {saving ? t('udhaar.saving') : t('udhaar.saveEntry')}
           </button>
         </form>
       )}
 
       {people.length === 0 && (
         <p style={{ color: theme.textMuted, fontSize: 13, textAlign: 'center', padding: '30px 0' }}>
-          Koi udhaar entry nahi hai abhi. Upar button se add karo.
+          {t('udhaar.empty')}
         </p>
       )}
 
@@ -227,10 +229,10 @@ export default function UdhaarTracker({ userId }) {
         const isExpanded = expandedPerson === person
         const balanceColor = balance > 0 ? theme.success : balance < 0 ? theme.danger : theme.textMuted
         const balanceText = balance > 0
-          ? `${person} ko ₹${balance.toFixed(0)} lene hain`
+          ? t('udhaar.owesYou', person, balance.toFixed(0))
           : balance < 0
-            ? `${person} ko ₹${Math.abs(balance).toFixed(0)} dene hain`
-            : 'Settled ✓'
+            ? t('udhaar.youOwe', person, Math.abs(balance).toFixed(0))
+            : t('udhaar.settled')
 
         return (
           <div key={person} style={{
@@ -259,14 +261,14 @@ export default function UdhaarTracker({ userId }) {
                   }}>
                     <div>
                       <span style={{ color: e.type === 'lent' ? theme.success : theme.danger }}>
-                        {e.type === 'lent' ? 'Diya' : 'Liya'} ₹{e.amount}
+                        {e.type === 'lent' ? t('udhaar.gave') : t('udhaar.took')} ₹{e.amount}
                       </span>
                       <span style={{ color: theme.textMuted, marginLeft: 8 }}>{e.entry_date}</span>
                       {e.reason && <div style={{ color: theme.textSubtle, marginTop: 2 }}>📝 {e.reason}</div>}
                       {e.note && <div style={{ color: theme.textMuted, marginTop: 2 }}>{e.note}</div>}
                       {e.expected_return_date && (
                         <div style={{ color: theme.accent, marginTop: 2, fontSize: 11.5 }}>
-                          ⏰ Wapas: {e.expected_return_date}
+                          ⏰ {t('udhaar.returnBy')}: {e.expected_return_date}
                         </div>
                       )}
                     </div>
@@ -288,7 +290,7 @@ export default function UdhaarTracker({ userId }) {
                       color: theme.accent, fontSize: 12.5, fontWeight: 600,
                     }}
                   >
-                    ✓ Mark as Settled
+                    {t('udhaar.markSettled')}
                   </button>
                 )}
               </div>
@@ -298,4 +300,4 @@ export default function UdhaarTracker({ userId }) {
       })}
     </div>
   )
-            }
+                      }
