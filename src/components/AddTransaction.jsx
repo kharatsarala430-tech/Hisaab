@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../lib/categories'
 import { useTheme } from '../ThemeContext'
 import { useLanguage } from '../LanguageContext'
+import { makeLocalId, enqueue } from '../lib/offlineStore'
+import { drainQueue } from '../lib/syncManager'
 
 const CATEGORIES = {
   income: INCOME_CATEGORIES,
@@ -45,8 +47,7 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
     setSaving(true)
 
     const recurringDay = isRecurring ? new Date(date).getDate() : null
-
-    const { error } = await supabase.from('transactions').insert({
+    const payload = {
       user_id: userId,
       type,
       amount: Number(amount),
@@ -55,16 +56,32 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
       date,
       is_recurring: isRecurring,
       recurring_day: recurringDay,
-    })
+    }
 
-    if (error) {
-      console.error('Error adding transaction:', error.message)
-      alert('DEBUG ERROR: ' + error.message) // TEMPORARY — remove after debugging
+    if (navigator.onLine) {
+      // Online path — same as before: write straight to Supabase.
+      const { error } = await supabase.from('transactions').insert(payload)
+      if (error) {
+        console.error('Error adding transaction:', error.message)
+        alert('DEBUG ERROR: ' + error.message) // TEMPORARY — remove after debugging
+        setSaving(false)
+        return
+      }
     } else {
-      setAmount('')
-      setNote('')
-      setIsRecurring(false)
-      onTransactionAdded() // refresh the list in Dashboard
+      // Offline path — give this transaction a temporary local id so the UI
+      // (TransactionList reading from the local cache) can show it right
+      // away, then queue the real insert for when connectivity returns.
+      const localId = makeLocalId()
+      await enqueue({ action: 'add', localId, payload: { ...payload, _localId: localId } })
+    }
+
+    setAmount('')
+    setNote('')
+    setIsRecurring(false)
+    onTransactionAdded() // refresh the list in Dashboard (reads local cache + live data)
+
+    if (navigator.onLine) {
+      drainQueue() // in case older items were still waiting from a previous offline spell
     }
     setSaving(false)
   }
