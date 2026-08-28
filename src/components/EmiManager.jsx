@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { scheduleBillReminder, cancelBillReminder } from '../lib/notifications'
 import { scheduleEmiReminders, cancelEmiReminders } from '../utils/emiNotifications'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 const LOAN_TYPES = ['Gadget Loan', 'Home Loan', 'Auto Loan', 'Personal Loan', 'Education Loan', 'Other']
 const BILL_CATEGORIES = ['Subscription', 'Utility', 'Insurance', 'Rent', 'Other']
@@ -10,6 +11,7 @@ const RECURRENCE_OPTIONS = ['monthly', 'yearly', 'one-time']
 
 export default function EmiManager({ userId }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState('emis') // 'emis' | 'bills'
 
   return (
@@ -28,7 +30,7 @@ export default function EmiManager({ userId }) {
             fontWeight: 700, fontSize: 13.5,
           }}
         >
-          EMIs
+          {t('emi.tabEmis')}
         </button>
         <button
           onClick={() => setActiveTab('bills')}
@@ -39,7 +41,7 @@ export default function EmiManager({ userId }) {
             fontWeight: 700, fontSize: 13.5,
           }}
         >
-          Bills
+          {t('emi.tabBills')}
         </button>
       </div>
 
@@ -51,6 +53,7 @@ export default function EmiManager({ userId }) {
 /* ============ EMI SECTION (unchanged logic, just extracted) ============ */
 function EmiSection({ userId }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const inputStyle = {
     width: '100%',
     padding: '13px 14px',
@@ -157,17 +160,17 @@ function EmiSection({ userId }) {
         <span style={{
           fontSize: 11, background: `${theme.purple}24`, padding: '4px 10px',
           borderRadius: 20, color: theme.purple,
-        }}>Debt & Loan Portfolio</span>
-        <h2 style={{ fontSize: 24, fontWeight: 600, margin: '10px 0 4px', color: theme.textOnAccent }}>EMI Manager</h2>
+        }}>{t('emi.heroBadge')}</span>
+        <h2 style={{ fontSize: 24, fontWeight: 600, margin: '10px 0 4px', color: theme.textOnAccent }}>{t('emi.heroTitle')}</h2>
         <p style={{ fontSize: 12.5, color: theme.textSubtle, marginBottom: 16 }}>
-          Track auto loans, gadgets & credit card EMIs with due reminders.
+          {t('emi.heroDesc')}
         </p>
         <button onClick={() => setShowForm(!showForm)} style={{
           width: '100%', padding: 12, borderRadius: 12, border: 'none',
           background: theme.purple, color: theme.bg, fontWeight: 700, fontSize: 13.5,
           boxShadow: `0 0 20px ${theme.purple}66`,
         }}>
-          + Add New EMI
+          {t('emi.addNew')}
         </button>
       </div>
 
@@ -177,38 +180,38 @@ function EmiSection({ userId }) {
           background: theme.card, borderRadius: 16, padding: 18, marginBottom: 18,
           border: `1px solid ${theme.purple}33`,
         }}>
-          <input placeholder="Loan Name (e.g. Laptop)" value={loanName} onChange={(e) => setLoanName(e.target.value)} required style={inputStyle} />
-          <input placeholder="Lender (e.g. Bajaj)" value={lender} onChange={(e) => setLender(e.target.value)} style={inputStyle} />
+          <input placeholder={t('emi.loanNamePlaceholder')} value={loanName} onChange={(e) => setLoanName(e.target.value)} required style={inputStyle} />
+          <input placeholder={t('emi.lenderPlaceholder')} value={lender} onChange={(e) => setLender(e.target.value)} style={inputStyle} />
           <select value={loanType} onChange={(e) => setLoanType(e.target.value)} style={inputStyle}>
-            {LOAN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {LOAN_TYPES.map((ty) => <option key={ty} value={ty}>{ty}</option>)}
           </select>
-          <input type="number" placeholder="Total Principal (₹)" value={principal} onChange={(e) => setPrincipal(e.target.value)} required min="0" style={inputStyle} />
-          <input type="number" placeholder="Monthly Installment (₹)" value={installment} onChange={(e) => setInstallment(e.target.value)} required min="0" style={inputStyle} />
-          <input type="number" placeholder="Due Day of Month (1-31)" value={dueDay} onChange={(e) => setDueDay(e.target.value)} required min="1" max="31" style={inputStyle} />
-          <input type="number" placeholder="Total Number of Installments" value={totalInstallments} onChange={(e) => setTotalInstallments(e.target.value)} required min="1" style={{ ...inputStyle, marginBottom: 16 }} />
+          <input type="number" placeholder={t('emi.principalPlaceholder')} value={principal} onChange={(e) => setPrincipal(e.target.value)} required min="0" style={inputStyle} />
+          <input type="number" placeholder={t('emi.installmentPlaceholder')} value={installment} onChange={(e) => setInstallment(e.target.value)} required min="0" style={inputStyle} />
+          <input type="number" placeholder={t('emi.dueDayPlaceholder')} value={dueDay} onChange={(e) => setDueDay(e.target.value)} required min="1" max="31" style={inputStyle} />
+          <input type="number" placeholder={t('emi.totalInstallmentsPlaceholder')} value={totalInstallments} onChange={(e) => setTotalInstallments(e.target.value)} required min="1" style={{ ...inputStyle, marginBottom: 16 }} />
           <button type="submit" disabled={saving} style={{
             width: '100%', padding: '14px', borderRadius: 14, border: 'none',
             background: theme.purple, color: theme.bg, fontWeight: 700, fontSize: 14.5,
             opacity: saving ? 0.6 : 1,
           }}>
-            {saving ? 'Saving...' : 'Save EMI'}
+            {saving ? t('emi.saving') : t('emi.saveEmi')}
           </button>
         </form>
       )}
 
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
-        <StatCard label="Monthly EMI Commitment" value={`₹${monthlyCommitment.toLocaleString()}`} sub={`${emis.length} Active Loans`} accent={theme.purple} />
-        <StatCard label="Remaining Liability" value={`₹${remainingLiability.toLocaleString()}`} sub="Total Outstanding" accent={theme.danger} />
-        <StatCard label="Total Principal Financed" value={`₹${totalPrincipal.toLocaleString()}`} sub="Original Borrowed" accent={theme.textOnAccent} />
-        <StatCard label="Completed Loans" value={`${completedLoans} Loans`} sub="Fully Repaid" accent={theme.success} />
+        <StatCard label={t('emi.monthlyCommitment')} value={`₹${monthlyCommitment.toLocaleString()}`} sub={t('emi.activeLoans', emis.length)} accent={theme.purple} />
+        <StatCard label={t('emi.remainingLiability')} value={`₹${remainingLiability.toLocaleString()}`} sub={t('emi.totalOutstanding')} accent={theme.danger} />
+        <StatCard label={t('emi.totalPrincipal')} value={`₹${totalPrincipal.toLocaleString()}`} sub={t('emi.originalBorrowed')} accent={theme.textOnAccent} />
+        <StatCard label={t('emi.completedLoans')} value={`${completedLoans} ${t('emi.months') === 'Months' ? 'Loans' : ''}`} sub={t('emi.fullyRepaid')} accent={theme.success} />
       </div>
 
       {/* EMI list */}
       {loading ? (
-        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>Loading EMIs...</p>
+        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>{t('emi.loading')}</p>
       ) : emis.length === 0 ? (
-        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>No EMIs added yet.</p>
+        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>{t('emi.empty')}</p>
       ) : (
         emis.map((emi) => {
           const remaining = Math.max(0, emi.total_installments - emi.installments_paid)
@@ -221,7 +224,7 @@ function EmiSection({ userId }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <Tag color={theme.purple}>{emi.loan_type}</Tag>
-                <Tag color={theme.textSubtle}>Due on {emi.due_day}th</Tag>
+                <Tag color={theme.textSubtle}>{t('emi.dueOn', emi.due_day)}</Tag>
                 <button
                   onClick={() => handleDelete(emi.id)}
                   style={{
@@ -244,21 +247,21 @@ function EmiSection({ userId }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, fontSize: 13 }}>
                 <div>
-                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>Monthly Installment</div>
+                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>{t('emi.monthlyInstallment')}</div>
                   <div style={{ color: theme.purple, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                     ₹{Number(emi.monthly_installment).toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>Due Day Each Month</div>
-                  <div style={{ fontWeight: 700, color: theme.text }}>Day {emi.due_day}</div>
+                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>{t('emi.dueDayEachMonth')}</div>
+                  <div style={{ fontWeight: 700, color: theme.text }}>{t('emi.day')} {emi.due_day}</div>
                 </div>
                 <div>
-                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>Installments Left</div>
-                  <div style={{ color: theme.warning, fontWeight: 700 }}>{remaining} Months</div>
+                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>{t('emi.installmentsLeft')}</div>
+                  <div style={{ color: theme.warning, fontWeight: 700 }}>{remaining} {t('emi.months')}</div>
                 </div>
                 <div>
-                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>Remaining Balance</div>
+                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>{t('emi.remainingBalance')}</div>
                   <div style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: theme.text }}>
                     ₹{remainingBalance.toLocaleString()}
                   </div>
@@ -275,6 +278,7 @@ function EmiSection({ userId }) {
 /* ============ BILLS SECTION (new) ============ */
 function BillsSection({ userId }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
   const inputStyle = {
     width: '100%',
     padding: '13px 14px',
@@ -427,17 +431,17 @@ function BillsSection({ userId }) {
         <span style={{
           fontSize: 11, background: `${theme.purple}24`, padding: '4px 10px',
           borderRadius: 20, color: theme.purple,
-        }}>Bills & Subscriptions</span>
-        <h2 style={{ fontSize: 24, fontWeight: 600, margin: '10px 0 4px', color: theme.textOnAccent }}>Planned Payments</h2>
+        }}>{t('emi.billsHeroBadge')}</span>
+        <h2 style={{ fontSize: 24, fontWeight: 600, margin: '10px 0 4px', color: theme.textOnAccent }}>{t('emi.billsHeroTitle')}</h2>
         <p style={{ fontSize: 12.5, color: theme.textSubtle, marginBottom: 16 }}>
-          Track recurring bills, subscriptions & one-time payments.
+          {t('emi.billsHeroDesc')}
         </p>
         <button onClick={() => setShowForm(!showForm)} style={{
           width: '100%', padding: 12, borderRadius: 12, border: 'none',
           background: theme.purple, color: theme.bg, fontWeight: 700, fontSize: 13.5,
           boxShadow: `0 0 20px ${theme.purple}66`,
         }}>
-          + Add New Payment
+          {t('emi.addNewPayment')}
         </button>
       </div>
 
@@ -447,11 +451,11 @@ function BillsSection({ userId }) {
           background: theme.card, borderRadius: 16, padding: 18, marginBottom: 18,
           border: `1px solid ${theme.purple}33`,
         }}>
-          <input placeholder="Payment Name (e.g. Netflix)" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} />
+          <input placeholder={t('emi.paymentNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} />
           <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
             {BILL_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <input type="number" placeholder="Amount (₹) — leave blank if it varies" value={amount} onChange={(e) => setAmount(e.target.value)} min="0" style={inputStyle} />
+          <input type="number" placeholder={t('emi.billAmountPlaceholder')} value={amount} onChange={(e) => setAmount(e.target.value)} min="0" style={inputStyle} />
           <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} style={inputStyle}>
             {RECURRENCE_OPTIONS.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
           </select>
@@ -461,24 +465,24 @@ function BillsSection({ userId }) {
             background: theme.purple, color: theme.bg, fontWeight: 700, fontSize: 14.5,
             opacity: saving ? 0.6 : 1,
           }}>
-            {saving ? 'Saving...' : 'Save Payment'}
+            {saving ? t('emi.saving') : t('emi.savePayment')}
           </button>
         </form>
       )}
 
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
-        <StatCard label="Due This Cycle" value={`₹${totalDueThisCycle.toLocaleString()}`} sub={`${unpaidBills.length} Unpaid`} accent={theme.purple} />
-        <StatCard label="Overdue" value={`${overdueCount}`} sub="Past due date" accent={theme.danger} />
-        <StatCard label="Due Soon" value={`${dueSoonCount}`} sub="Within 3 days" accent={theme.warning} />
-        <StatCard label="Total Tracked" value={`${bills.length}`} sub="All payments" accent={theme.textOnAccent} />
+        <StatCard label={t('emi.dueThisCycle')} value={`₹${totalDueThisCycle.toLocaleString()}`} sub={t('emi.unpaid', unpaidBills.length)} accent={theme.purple} />
+        <StatCard label={t('emi.overdue')} value={`${overdueCount}`} sub={t('emi.pastDueDate')} accent={theme.danger} />
+        <StatCard label={t('emi.dueSoon')} value={`${dueSoonCount}`} sub={t('emi.within3Days')} accent={theme.warning} />
+        <StatCard label={t('emi.totalTracked')} value={`${bills.length}`} sub={t('emi.allPayments')} accent={theme.textOnAccent} />
       </div>
 
       {/* Bills list */}
       {loading ? (
-        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>Loading payments...</p>
+        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>{t('emi.loadingPayments')}</p>
       ) : bills.length === 0 ? (
-        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>No planned payments added yet.</p>
+        <p style={{ color: theme.textMuted, fontSize: 13.5, textAlign: 'center', padding: 20 }}>{t('emi.emptyPayments')}</p>
       ) : (
         bills.map((bill) => {
           const days = daysUntil(bill.due_date)
@@ -486,10 +490,10 @@ function BillsSection({ userId }) {
           const isDueSoon = days >= 0 && days <= 3 && !bill.is_paid
 
           let statusColor = theme.textMuted
-          let statusText = `Due in ${days} days`
-          if (bill.is_paid) { statusColor = theme.success; statusText = 'Paid' }
-          else if (isOverdue) { statusColor = theme.danger; statusText = `Overdue by ${Math.abs(days)} days` }
-          else if (isDueSoon) { statusColor = theme.warning; statusText = days === 0 ? 'Due today' : `Due in ${days} days` }
+          let statusText = t('emi.dueInDays', days)
+          if (bill.is_paid) { statusColor = theme.success; statusText = t('emi.paid') }
+          else if (isOverdue) { statusColor = theme.danger; statusText = t('emi.overdueBy', Math.abs(days)) }
+          else if (isDueSoon) { statusColor = theme.warning; statusText = days === 0 ? t('emi.dueToday') : t('emi.dueInDays', days) }
 
           return (
             <div key={bill.id} style={{
@@ -516,9 +520,9 @@ function BillsSection({ userId }) {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>Amount</div>
+                  <div style={{ color: theme.textMuted, fontSize: 11, marginBottom: 3 }}>{t('emi.amount')}</div>
                   <div style={{ color: theme.purple, fontWeight: 700, fontSize: 16, fontVariantNumeric: 'tabular-nums' }}>
-                    {bill.amount ? `₹${Number(bill.amount).toLocaleString()}` : 'Varies'}
+                    {bill.amount ? `₹${Number(bill.amount).toLocaleString()}` : t('emi.varies')}
                   </div>
                 </div>
                 {!bill.is_paid && (
@@ -529,7 +533,7 @@ function BillsSection({ userId }) {
                       background: theme.success, color: theme.successBg, fontWeight: 700, fontSize: 12.5,
                     }}
                   >
-                    Mark as Paid
+                    {t('emi.markPaid')}
                   </button>
                 )}
               </div>
