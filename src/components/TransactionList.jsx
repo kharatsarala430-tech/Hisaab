@@ -1,18 +1,38 @@
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../ThemeContext'
 import { useLanguage } from '../LanguageContext'
+import { isLocalId, enqueue } from '../lib/offlineStore'
+import { drainQueue } from '../lib/syncManager'
 
 export default function TransactionList({ transactions, loading, onTransactionChanged }) {
   const { theme } = useTheme()
   const { t } = useLanguage()
 
-  const handleDelete = async (id) => {
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
-    if (error) {
-      console.error('Error deleting transaction:', error.message)
+  const handleDelete = async (tx) => {
+    if (navigator.onLine) {
+      // Online — but this row might still be an offline-added transaction
+      // that hasn't synced yet (still has a local_ id). Nothing exists on
+      // the server for it yet, so just drop it locally via the callback
+      // instead of calling Supabase with an id it's never seen.
+      if (isLocalId(tx.id)) {
+        onTransactionChanged({ removeLocalId: tx.id })
+        return
+      }
+      const { error } = await supabase.from('transactions').delete().eq('id', tx.id)
+      if (error) {
+        console.error('Error deleting transaction:', error.message)
+        return
+      }
     } else {
-      onTransactionChanged()
+      // Offline — queue the delete. wasSynced tells the sync manager whether
+      // there's actually a server row to remove once we're back online.
+      await enqueue({
+        action: 'delete',
+        payload: { id: tx.id, wasSynced: !isLocalId(tx.id) },
+      })
     }
+    onTransactionChanged()
+    if (navigator.onLine) drainQueue()
   }
 
   if (loading) {
@@ -45,7 +65,17 @@ export default function TransactionList({ transactions, loading, onTransactionCh
           borderLeft: `3px solid ${tx.type === 'income' ? theme.success : theme.danger}`,
         }}>
           <div>
-            <div style={{ fontSize: 14.5, fontWeight: 500, color: theme.text }}>{tx.category}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 14.5, fontWeight: 500, color: theme.text }}>{tx.category}</span>
+              {isLocalId(tx.id) && (
+                <span style={{
+                  fontSize: 9.5, padding: '2px 7px', borderRadius: 20,
+                  background: `${theme.warning}22`, color: theme.warning, fontWeight: 600,
+                }}>
+                  {t('offline.pendingTag')}
+                </span>
+              )}
+            </div>
             <div style={{ fontSize: 11.5, color: theme.textMuted }}>{tx.date}</div>
             {tx.note && <div style={{ fontSize: 11.5, color: theme.textFaint, marginTop: 2 }}>{tx.note}</div>}
           </div>
@@ -57,7 +87,7 @@ export default function TransactionList({ transactions, loading, onTransactionCh
               {tx.type === 'income' ? '+' : '-'}₹{tx.amount}
             </span>
             <button
-              onClick={() => handleDelete(tx.id)}
+              onClick={() => handleDelete(tx)}
               style={{
                 width: 26, height: 26, borderRadius: 8, border: 'none',
                 background: theme.borderSoft, color: theme.textMuted,
