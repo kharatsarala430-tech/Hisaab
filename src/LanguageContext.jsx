@@ -35,13 +35,17 @@ export function LanguageProvider({ children }) {
     setLanguageState(code);
   };
 
-  const t = (path) => {
+  const t = (path, ...args) => {
     const active = language || "english";
-    const value = getByPath(translations[active], path);
-    if (value !== undefined) return value;
-    // Fall back to English for any string not yet translated for this language.
-    const fallback = getByPath(translations.english, path);
-    return fallback !== undefined ? fallback : path;
+    let value = getByPath(translations[active], path);
+    if (value === undefined) {
+      // Fall back to English for any string not yet translated for this language.
+      value = getByPath(translations.english, path);
+    }
+    if (value === undefined) return path;
+    // Some translations are functions (e.g. t("emi.dueInDays", 3)) so they can
+    // interpolate a number/name into the right place for each language's word order.
+    return typeof value === "function" ? value(...args) : value;
   };
 
   const value = {
