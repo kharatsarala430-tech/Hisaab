@@ -348,4 +348,4 @@ export default function Dashboard({ session }) {
       )}
     </div>
   )
-      }
+}
