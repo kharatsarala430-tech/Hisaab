@@ -1,8 +1,10 @@
 import { getCategoryGroup } from '../lib/categories'
 import { useTheme } from '../ThemeContext'
+import { useLanguage } from '../LanguageContext'
 
 export default function BudgetPlanner({ transactions }) {
   const { theme } = useTheme()
+  const { t } = useLanguage()
 
   const totalIncome = transactions
     .filter((t) => t.type === 'income')
@@ -28,9 +30,9 @@ export default function BudgetPlanner({ transactions }) {
   const savingsTarget = totalIncome * 0.2
 
   const rows = [
-    { label: 'Needs (50%)', spent: needsSpent, target: needsTarget, pct: pct(needsSpent), color: theme.success, icon: '🏠', desc: 'Rent, Bills, Groceries, Healthcare & Loan EMIs' },
-    { label: 'Wants (30%)', spent: wantsSpent, target: wantsTarget, pct: pct(wantsSpent), color: theme.warning, icon: '🛍️', desc: 'Shopping, Entertainment, Travel & other lifestyle spends' },
-    { label: 'Savings (20%)', spent: saved > 0 ? saved : 0, target: savingsTarget, pct: pct(saved > 0 ? saved : 0), color: theme.accent, icon: '💰', desc: 'Income left after all expenses' },
+    { label: t('budget.needs'), spent: needsSpent, target: needsTarget, pct: pct(needsSpent), color: theme.success, icon: '🏠', desc: t('budget.needsDesc') },
+    { label: t('budget.wants'), spent: wantsSpent, target: wantsTarget, pct: pct(wantsSpent), color: theme.warning, icon: '🛍️', desc: t('budget.wantsDesc') },
+    { label: t('budget.savingsRow'), spent: saved > 0 ? saved : 0, target: savingsTarget, pct: pct(saved > 0 ? saved : 0), color: theme.accent, icon: '💰', desc: t('budget.savingsDesc') },
   ]
 
   return (
@@ -44,10 +46,10 @@ export default function BudgetPlanner({ transactions }) {
         <span style={{
           fontSize: 11, background: `${theme.success}1F`, padding: '4px 10px',
           borderRadius: 20, color: theme.greenSoft,
-        }}>Golden 50/30/20 Framework</span>
-        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '10px 0 8px', color: theme.textOnAccent }}>50/30/20 Budget Planner</h2>
+        }}>{t('budget.heroBadge')}</span>
+        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '10px 0 8px', color: theme.textOnAccent }}>{t('budget.heroTitle')}</h2>
         <p style={{ fontSize: 12.5, color: theme.textSubtle }}>
-          Automatically calculates your Needs, Wants, and Savings from real transactions.
+          {t('budget.heroDesc')}
         </p>
       </div>
 
@@ -56,14 +58,14 @@ export default function BudgetPlanner({ transactions }) {
         background: theme.card, borderRadius: 16, padding: 18, marginBottom: 18,
         border: `1px solid ${theme.borderSoft}`,
       }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, color: theme.text }}>Monthly Cashflow Distribution</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, color: theme.text }}>{t('budget.cashflowTitle')}</h3>
         <p style={{ fontSize: 13, color: theme.textSubtle, marginBottom: 12, fontVariantNumeric: 'tabular-nums' }}>
-          Income: ₹{totalIncome.toLocaleString()} | Spent: ₹{totalSpent.toLocaleString()} | Saved: ₹{(saved > 0 ? saved : 0).toLocaleString()}
+          {t('budget.income')}: ₹{totalIncome.toLocaleString()} | {t('budget.spent')}: ₹{totalSpent.toLocaleString()} | {t('budget.saved')}: ₹{(saved > 0 ? saved : 0).toLocaleString()}
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 12.5 }}>
-          <LegendDot color={theme.success} label={`Needs (${pct(needsSpent)}%)`} />
-          <LegendDot color={theme.warning} label={`Wants (${pct(wantsSpent)}%)`} />
-          <LegendDot color={theme.accent} label={`Savings (${pct(saved > 0 ? saved : 0)}%)`} />
+          <LegendDot color={theme.success} label={`${t('budget.needs')} (${pct(needsSpent)}%)`} />
+          <LegendDot color={theme.warning} label={`${t('budget.wants')} (${pct(wantsSpent)}%)`} />
+          <LegendDot color={theme.accent} label={`${t('budget.savingsRow')} (${pct(saved > 0 ? saved : 0)}%)`} />
         </div>
       </div>
 
@@ -82,12 +84,12 @@ export default function BudgetPlanner({ transactions }) {
                 background: isSafe ? `${theme.success}22` : `${theme.danger}22`,
                 color: isSafe ? theme.success : theme.danger, fontWeight: 600,
               }}>
-                {isSafe ? 'Safe Zone' : 'Over Budget'}
+                {isSafe ? t('budget.safeZone') : t('budget.overBudget')}
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: theme.textSubtle, marginBottom: 8 }}>
-              <span>Target Allocation: ₹{row.target.toLocaleString()}</span>
-              <span>Actual: ₹{row.spent.toLocaleString()}</span>
+              <span>{t('budget.targetAllocation')}: ₹{row.target.toLocaleString()}</span>
+              <span>{t('budget.actual')}: ₹{row.spent.toLocaleString()}</span>
             </div>
             <div style={{ height: 8, background: theme.borderSoft, borderRadius: 4, marginBottom: 10, overflow: 'hidden' }}>
               <div style={{
@@ -113,4 +115,4 @@ function LegendDot({ color, label }) {
       <span style={{ color: theme.textSubtle }}>{label}</span>
     </span>
   )
-        }
+                       }
