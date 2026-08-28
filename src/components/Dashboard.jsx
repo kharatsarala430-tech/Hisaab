@@ -12,12 +12,15 @@ import Sidebar from './Sidebar'
 import UdhaarTracker from './UdhaarTracker'
 import SettingsPage from './SettingsPage'
 import ErrorBoundary from './ErrorBoundary'
+import OfflineBanner from './OfflineBanner'
 import { useTheme } from '../ThemeContext'
 import { exportTransactionsToCSV } from '../utils/exportCSV'
 import { getWeeklyNudge } from '../utils/spendingNudges'
 import { checkAndAddRecurringIncomes } from '../utils/recurringIncome'
 import DashboardTour from './DashboardTour'
 import { STORAGE_KEYS } from '../guideContent'
+import { getCachedTransactions, setCachedTransactions, getQueue, isLocalId } from '../lib/offlineStore'
+import { initSyncManager, onSyncStatusChange, drainQueue } from '../lib/syncManager'
 
 export default function Dashboard({ session }) {
   const { theme } = useTheme()
@@ -34,13 +37,45 @@ export default function Dashboard({ session }) {
   const [showTour, setShowTour] = useState(
     () => localStorage.getItem(STORAGE_KEYS.tourSeen) !== 'true'
   )
+  const [syncStatus, setSyncStatus] = useState(null)
 
   // Month selector — defaults to the current month, e.g. "2026-08"
   const currentMonthKey = new Date().toISOString().slice(0, 7)
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey)
 
-  const fetchTransactions = async () => {
+  // Accepts an optional { removeLocalId } so TransactionList can ask for an
+  // unsynced local row to be dropped immediately (see its handleDelete).
+  const fetchTransactions = async (opts = {}) => {
     setLoading(true)
+
+    // 1) Show cached data immediately — this is what makes the app usable
+    //    the instant it opens offline, before any network call resolves.
+    let cached = await getCachedTransactions()
+    if (opts.removeLocalId) {
+      cached = cached.filter((tx) => tx.id !== opts.removeLocalId)
+      await setCachedTransactions(cached)
+    }
+
+    // 2) Merge in anything still sitting in the queue as an 'add' — covers
+    //    the moment right after adding offline, before the next full sync.
+    const queue = await getQueue()
+    const queuedAdds = queue
+      .filter((item) => item.action === 'add')
+      .map((item) => ({ ...item.payload, id: item.payload._localId }))
+    const queuedDeleteIds = new Set(
+      queue.filter((item) => item.action === 'delete').map((item) => item.payload.id)
+    )
+
+    const merged = [...queuedAdds, ...cached.filter((tx) => !queuedDeleteIds.has(tx.id))]
+    // De-dupe by id in case a cached row and a queued add briefly overlap.
+    const deduped = Array.from(new Map(merged.map((tx) => [tx.id, tx])).values())
+    setTransactions(deduped.sort((a, b) => (a.date < b.date ? 1 : -1)))
+    setLoading(false)
+
+    // 3) If online, get the real data from Supabase and refresh the cache —
+    //    this is the source of truth once connectivity allows it.
+    if (!navigator.onLine) return
+
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
@@ -49,10 +84,22 @@ export default function Dashboard({ session }) {
 
     if (error) {
       console.error('Error fetching transactions:', error.message)
-    } else {
-      setTransactions(data)
+      return
     }
-    setLoading(false)
+
+    await setCachedTransactions(data)
+    // Re-merge with the queue again — a queued add/delete might still be
+    // mid-flight and not yet reflected in what Supabase just returned.
+    const freshQueue = await getQueue()
+    const freshQueuedAdds = freshQueue
+      .filter((item) => item.action === 'add')
+      .map((item) => ({ ...item.payload, id: item.payload._localId }))
+    const freshDeleteIds = new Set(
+      freshQueue.filter((item) => item.action === 'delete').map((item) => item.payload.id)
+    )
+    const freshMerged = [...freshQueuedAdds, ...data.filter((tx) => !freshDeleteIds.has(tx.id))]
+    const freshDeduped = Array.from(new Map(freshMerged.map((tx) => [tx.id, tx])).values())
+    setTransactions(freshDeduped.sort((a, b) => (a.date < b.date ? 1 : -1)))
   }
 
   const fetchEmis = async () => {
@@ -132,6 +179,18 @@ export default function Dashboard({ session }) {
     })
   }, [])
 
+  useEffect(() => {
+    // Start listening for online/offline transitions and draining the sync
+    // queue. Refresh the transaction list whenever sync status changes so
+    // any items that just synced drop their "Pending sync" tag.
+    const unsubscribe = onSyncStatusChange((status) => {
+      setSyncStatus(status)
+      fetchTransactions()
+    })
+    initSyncManager()
+    return unsubscribe
+  }, [])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
   }
@@ -176,6 +235,8 @@ export default function Dashboard({ session }) {
       overflowX: 'hidden',
       width: '100%',
     }}>
+      <OfflineBanner status={syncStatus} />
+
       {/* Sidebar renders its own hamburger button + drawer — just drop it in */}
       <Sidebar
         session={session}
@@ -287,4 +348,4 @@ export default function Dashboard({ session }) {
       )}
     </div>
   )
-        }
+      }
