@@ -58,21 +58,30 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
       recurring_day: recurringDay,
     }
 
-    if (navigator.onLine) {
-      // Online path — same as before: write straight to Supabase.
-      const { error } = await supabase.from('transactions').insert(payload)
-      if (error) {
-        console.error('Error adding transaction:', error.message)
-        alert('DEBUG ERROR: ' + error.message) // TEMPORARY — remove after debugging
-        setSaving(false)
-        return
-      }
-    } else {
-      // Offline path — give this transaction a temporary local id so the UI
-      // (TransactionList reading from the local cache) can show it right
-      // away, then queue the real insert for when connectivity returns.
+    // Queues this transaction locally with a temporary id, so the UI can
+    // show it right away and it'll sync automatically once connectivity
+    // is actually back — used both for the "known offline" case and as a
+    // fallback below when the online path unexpectedly fails.
+    const queueOffline = async () => {
       const localId = makeLocalId()
       await enqueue({ action: 'add', localId, payload: { ...payload, _localId: localId } })
+    }
+
+    if (navigator.onLine) {
+      // Online path — but navigator.onLine can briefly report true right
+      // after connectivity actually drops (stale browser state), so if the
+      // real network call fails, fall back to the offline queue instead of
+      // losing the transaction.
+      try {
+        const { error } = await supabase.from('transactions').insert(payload)
+        if (error) throw error
+      } catch (err) {
+        console.error('Online insert failed, queuing for later sync:', err.message)
+        await queueOffline()
+      }
+    } else {
+      // Offline path — known offline, queue directly.
+      await queueOffline()
     }
 
     setAmount('')
@@ -174,4 +183,4 @@ export default function AddTransaction({ userId, onTransactionAdded }) {
       </button>
     </form>
   )
-}
+      }
