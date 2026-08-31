@@ -9,28 +9,41 @@ export default function TransactionList({ transactions, loading, onTransactionCh
   const { t } = useLanguage()
 
   const handleDelete = async (tx) => {
-    if (navigator.onLine) {
-      // Online — but this row might still be an offline-added transaction
-      // that hasn't synced yet (still has a local_ id). Nothing exists on
-      // the server for it yet, so just drop it locally via the callback
-      // instead of calling Supabase with an id it's never seen.
-      if (isLocalId(tx.id)) {
-        onTransactionChanged({ removeLocalId: tx.id })
-        return
-      }
-      const { error } = await supabase.from('transactions').delete().eq('id', tx.id)
-      if (error) {
-        console.error('Error deleting transaction:', error.message)
-        return
-      }
-    } else {
-      // Offline — queue the delete. wasSynced tells the sync manager whether
-      // there's actually a server row to remove once we're back online.
+    // If this row was never synced (still carries a local_ id), there's
+    // nothing on the server to delete regardless of connectivity — just
+    // drop it locally.
+    if (isLocalId(tx.id)) {
+      onTransactionChanged({ removeLocalId: tx.id })
+      return
+    }
+
+    // Queues this delete locally so it retries once connectivity is back —
+    // used both for the "known offline" case and as a fallback below when
+    // the online path unexpectedly fails.
+    const queueOffline = async () => {
       await enqueue({
         action: 'delete',
-        payload: { id: tx.id, wasSynced: !isLocalId(tx.id) },
+        payload: { id: tx.id, wasSynced: true },
       })
     }
+
+    if (navigator.onLine) {
+      // Online path — but navigator.onLine can briefly report true right
+      // after connectivity actually drops (stale browser state), so if the
+      // real network call fails, fall back to the offline queue instead of
+      // silently failing.
+      try {
+        const { error } = await supabase.from('transactions').delete().eq('id', tx.id)
+        if (error) throw error
+      } catch (err) {
+        console.error('Online delete failed, queuing for later sync:', err.message)
+        await queueOffline()
+      }
+    } else {
+      // Offline path — known offline, queue directly.
+      await queueOffline()
+    }
+
     onTransactionChanged()
     if (navigator.onLine) drainQueue()
   }
@@ -101,4 +114,4 @@ export default function TransactionList({ transactions, loading, onTransactionCh
       ))}
     </div>
   )
-}
+          }
