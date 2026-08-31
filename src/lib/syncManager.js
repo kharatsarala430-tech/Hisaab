@@ -70,7 +70,11 @@ export async function drainQueue() {
     try {
       alert('DEBUG: trying item ' + item.queueId + ' action=' + item.action) // TEMP DEBUG
       if (item.action === 'add') {
-        const { error } = await supabase.from('transactions').insert(item.payload)
+        // Strip _localId before sending to Supabase — it's a UI-only
+        // marker used to find-and-replace the temporary row once synced,
+        // not a real column in the transactions table.
+        const { _localId, ...cleanPayload } = item.payload
+        const { error } = await supabase.from('transactions').insert(cleanPayload)
         if (error) throw error
       } else if (item.action === 'delete') {
         // If the transaction being deleted was itself never synced (its id
